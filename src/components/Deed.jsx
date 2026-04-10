@@ -1,202 +1,33 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Modal, Button, Form, InputGroup, Table, Card, Row, Col, Alert, Badge } from "react-bootstrap";
+import { Modal, Button, Form, Row, Col, Alert, Badge } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlus, faEye, faEdit, faTrash, faSearch,
   faFileAlt, faCheckCircle, faClock, faCalendarCheck, faCreditCard,
   faMapMarkerAlt, faBuilding, faUser, faMoneyBillWave,
-  faArrowUp, faArrowDown, faFilter, faTimes, faFileContract
+  faTimes, faSortAmountDown, faFileContract, faWallet, faHandHoldingUsd, faBalanceScale
 } from "@fortawesome/free-solid-svg-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "./Sidebar";
 
-// Enhanced dummy data for Deed records
+// Enhanced dummy data for Deed records including received and balance
 const dummyDeedData = [
-  {
-    id: 1,
-    date: "2024-10-01",
-    vendor: "Vendor A",
-    customerName: "John Doe",
-    reference: "Vendor A",
-    deed: "Sale Deed",
-    tpNo: "TP001",
-    office: "Office 1",
-    plotNo: "12345",
-    nagar: "Nagar 1",
-    fieldVisit: "Yes",
-    docNo: "DOC001",
-    returnDocument: "Yes",
-    editFee: 5000,
-    stamp: 10000,
-    others: 1000,
-    totalFee: 16000,
-    writingFee: 2000,
-    ddCommission: 500,
-    status: "Completed"
-  },
-  {
-    id: 2,
-    date: "2024-10-05",
-    vendor: "Normal Customer",
-    customerName: "Jane Smith",
-    reference: "Manual Entry",
-    deed: "Settlement",
-    tpNo: "TP002",
-    office: "Office 2",
-    plotNo: "67890",
-    nagar: "Nagar 2",
-    fieldVisit: "No",
-    docNo: "DOC002",
-    returnDocument: "No",
-    editFee: 7500,
-    stamp: 15000,
-    others: 2000,
-    totalFee: 24500,
-    writingFee: 3000,
-    ddCommission: 750,
-    status: "Pending"
-  },
-  {
-    id: 3,
-    date: "2024-10-10",
-    vendor: "Vendor C",
-    customerName: "Bob Johnson",
-    reference: "Vendor C",
-    deed: "Power",
-    tpNo: "TP003",
-    office: "Office 1",
-    plotNo: "54321",
-    nagar: "Nagar 3",
-    fieldVisit: "Yes",
-    docNo: "DOC003",
-    returnDocument: "Yes",
-    editFee: 6000,
-    stamp: 12000,
-    others: 1500,
-    totalFee: 19500,
-    writingFee: 2500,
-    ddCommission: 600,
-    status: "Completed"
-  },
-  {
-    id: 4,
-    date: "2024-10-15",
-    vendor: "Vendor D",
-    customerName: "Alice Williams",
-    reference: "Manual Entry",
-    deed: "Release",
-    tpNo: "TP004",
-    office: "Office 3",
-    plotNo: "98765",
-    nagar: "Nagar 4",
-    fieldVisit: "No",
-    docNo: "DOC004",
-    returnDocument: "Yes",
-    editFee: 4500,
-    stamp: 9000,
-    others: 800,
-    totalFee: 14300,
-    writingFee: 1800,
-    ddCommission: 450,
-    status: "Pending"
-  },
-  {
-    id: 5,
-    date: "2024-10-20",
-    vendor: "Vendor A",
-    customerName: "Charlie Brown",
-    reference: "Vendor A",
-    deed: "Rectification",
-    tpNo: "TP005",
-    office: "Office 2",
-    plotNo: "11111",
-    nagar: "Nagar 1",
-    fieldVisit: "Yes",
-    docNo: "DOC005",
-    returnDocument: "No",
-    editFee: 8000,
-    stamp: 16000,
-    others: 2500,
-    totalFee: 26500,
-    writingFee: 4000,
-    ddCommission: 800,
-    status: "Completed"
-  }
+  { id: 1, date: "2024-10-01", vendor: "Vendor A", customerName: "John Doe", reference: "Vendor A", deed: "Sale Deed", tpNo: "TP001", office: "Office 1", plotNo: "12345", nagar: "Nagar 1", fieldVisit: "Yes", docNo: "DOC001", returnDocument: "Yes", editFee: 5000, stamp: 10000, others: 1000, totalFee: 16000, received: 10000, balance: 6000, writingFee: 2000, ddCommission: 500, status: "Pending" },
+  { id: 2, date: "2024-10-05", vendor: "Normal Customer", customerName: "Jane Smith", reference: "Manual Entry", deed: "Settlement", tpNo: "TP002", office: "Office 2", plotNo: "67890", nagar: "Nagar 2", fieldVisit: "No", docNo: "DOC002", returnDocument: "No", editFee: 7500, stamp: 15000, others: 2000, totalFee: 24500, received: 24500, balance: 0, writingFee: 3000, ddCommission: 750, status: "Completed" },
+  { id: 3, date: "2024-10-10", vendor: "Vendor C", customerName: "Bob Johnson", reference: "Vendor C", deed: "Power", tpNo: "TP003", office: "Office 1", plotNo: "54321", nagar: "Nagar 3", fieldVisit: "Yes", docNo: "DOC003", returnDocument: "Yes", editFee: 6000, stamp: 12000, others: 1500, totalFee: 19500, received: 19500, balance: 0, writingFee: 2500, ddCommission: 600, status: "Completed" },
+  { id: 4, date: "2024-10-15", vendor: "Vendor D", customerName: "Alice Williams", reference: "Manual Entry", deed: "Release", tpNo: "TP004", office: "Office 3", plotNo: "98765", nagar: "Nagar 4", fieldVisit: "No", docNo: "DOC004", returnDocument: "Yes", editFee: 4500, stamp: 9000, others: 800, totalFee: 14300, received: 5000, balance: 9300, writingFee: 1800, ddCommission: 450, status: "Pending" },
+  { id: 5, date: "2024-10-20", vendor: "Vendor A", customerName: "Charlie Brown", reference: "Vendor A", deed: "Rectification", tpNo: "TP005", office: "Office 2", plotNo: "11111", nagar: "Nagar 1", fieldVisit: "Yes", docNo: "DOC005", returnDocument: "No", editFee: 8000, stamp: 16000, others: 2500, totalFee: 26500, received: 26500, balance: 0, writingFee: 4000, ddCommission: 800, status: "Completed" }
 ];
 
-// Dummy vendor data for dropdown
-const dummyVendorList = [
-  { id: 1, name: "Vendor A" },
-  { id: 2, name: "Vendor B" },
-  { id: 3, name: "Vendor C" },
-  { id: 4, name: "Vendor D" },
-  { id: 5, name: "Vendor E" }
-];
+const deedTypes = ["Sale Deed", "Settlement", "Power", "Release", "Rectification", "Participation", "Will", "MOD", "Cancel"];
 
-// Animation variants
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2
-    }
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 30, scale: 0.95 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      type: "spring",
-      stiffness: 100,
-      damping: 12
-    }
-  }
-};
-
-const cardHoverVariants = {
-  rest: { scale: 1, y: 0 },
-  hover: {
-    scale: 1.02,
-    y: -5,
-    transition: {
-      type: "spring",
-      stiffness: 400,
-      damping: 17
-    }
-  }
-};
-
-const tableRowVariants = {
-  hidden: { opacity: 0, x: -20 },
-  visible: { opacity: 1, x: 0 },
-  exit: { opacity: 0, x: 20 }
-};
-
+const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } } };
+const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100, damping: 15 } } };
 const modalVariants = {
-  hidden: { opacity: 0, scale: 0.8, y: 50 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    transition: {
-      type: "spring",
-      stiffness: 300,
-      damping: 25
-    }
-  },
-  exit: {
-    opacity: 0,
-    scale: 0.9,
-    y: 50,
-    transition: { duration: 0.2 }
-  }
+  hidden: { opacity: 0, scale: 0.95, y: 20 },
+  visible: { opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 25 } },
+  exit: { opacity: 0, scale: 0.95, y: -20, transition: { duration: 0.2 } }
 };
 
 const Deed = () => {
@@ -209,1724 +40,365 @@ const Deed = () => {
   const [currentDeed, setCurrentDeed] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({ vendor: "", deed: "", status: "" });
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+  const [sortOption, setSortOption] = useState("date-desc");
   const [referenceType, setReferenceType] = useState("vendor");
 
-  // Form state
   const [formData, setFormData] = useState({
-    date: "",
-    vendor: "",
-    customerName: "",
-    reference: "",
-    deed: "",
-    tpNo: "",
-    office: "",
-    plotNo: "",
-    nagar: "",
-    fieldVisit: "No",
-    docNo: "",
-    returnDocument: "No",
-    editFee: "",
-    stamp: "",
-    others: "",
-    totalFee: "",
-    writingFee: "",
-    ddCommission: ""
+    date: "", vendor: "", customerName: "", reference: "", deed: "", tpNo: "",
+    office: "", plotNo: "", nagar: "", fieldVisit: "No", docNo: "", returnDocument: "No",
+    editFee: "", stamp: "", others: "", totalFee: "", received: "", balance: "", writingFee: "", ddCommission: ""
   });
 
-  // Calculate totals for cards
   const totalDeeds = deedData.length;
-  const completedDeeds = deedData.filter(deed => deed.status === "Completed").length;
-  const pendingDeeds = deedData.filter(deed => deed.status === "Pending").length;
-  const thisMonthDeeds = deedData.filter(deed => new Date(deed.date).getMonth() === new Date().getMonth()).length;
+  const completedDeeds = deedData.filter(d => d.status === "Completed").length;
+  const pendingDeeds = deedData.filter(d => d.status === "Pending").length;
+  
+  const totalReceived = deedData.reduce((acc, curr) => acc + (Number(curr.received) || 0), 0);
+  const totalBalance = deedData.reduce((acc, curr) => acc + (Number(curr.balance) || 0), 0);
 
-  // Filter and sort data
   useEffect(() => {
-    let filtered = deedData.filter(deed =>
-      (deed.vendor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       deed.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       deed.tpNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       deed.deed.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       deed.nagar.toLowerCase().includes(searchTerm.toLowerCase()))
+    let filtered = deedData.filter(d =>
+      (d.vendor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       d.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       d.tpNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       d.deed.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       d.nagar.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
-    if (filters.vendor) filtered = filtered.filter(deed => deed.vendor === filters.vendor);
-    if (filters.deed) filtered = filtered.filter(deed => deed.deed === filters.deed);
-    if (filters.status) filtered = filtered.filter(deed => deed.status === filters.status);
+    if (filters.vendor) filtered = filtered.filter(d => d.vendor === filters.vendor);
+    if (filters.deed) filtered = filtered.filter(d => d.deed === filters.deed);
+    if (filters.status) filtered = filtered.filter(d => d.status === filters.status);
 
-    // Sorting
-    if (sortConfig.key) {
-      filtered.sort((a, b) => {
-        if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (a[sortConfig.key] > b[sortConfig.key]) return sortConfig.direction === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
+    filtered.sort((a, b) => {
+      const splitOption = sortOption.split("-");
+      const key = splitOption[0];
+      const direction = splitOption[1];
+      if (a[key] < b[key]) return direction === 'asc' ? -1 : 1;
+      if (a[key] > b[key]) return direction === 'asc' ? 1 : -1;
+      return 0;
+    });
 
     setFilteredData(filtered);
-  }, [deedData, searchTerm, filters, sortConfig]);
-
-  const handleSort = (key) => {
-    setSortConfig(prev => ({
-      key,
-      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
-    }));
-  };
+  }, [deedData, searchTerm, filters, sortOption]);
 
   const handleAddNew = () => {
-    setIsEdit(false);
-    setCurrentDeed(null);
-    setReferenceType("vendor");
-    setFormData({
-      date: "",
-      vendor: "",
-      customerName: "",
-      reference: "",
-      deed: "",
-      tpNo: "",
-      office: "",
-      plotNo: "",
-      nagar: "",
-      fieldVisit: "No",
-      docNo: "",
-      returnDocument: "No",
-      editFee: "",
-      stamp: "",
-      others: "",
-      totalFee: "",
-      writingFee: "",
-      ddCommission: ""
-    });
+    setIsEdit(false); setCurrentDeed(null); setReferenceType("vendor");
+    setFormData({ date: "", vendor: "", customerName: "", reference: "", deed: "", tpNo: "", office: "", plotNo: "", nagar: "", fieldVisit: "No", docNo: "", returnDocument: "No", editFee: "", stamp: "", others: "", totalFee: "", received: "", balance: "", writingFee: "", ddCommission: "" });
     setShowModal(true);
   };
-
-  const handleEdit = (deed) => {
-    setIsEdit(true);
-    setCurrentDeed(deed);
-    setReferenceType(deed.reference === "Manual Entry" ? "manual" : "vendor");
-    setFormData({
-      date: deed.date,
-      vendor: deed.vendor,
-      customerName: deed.customerName,
-      reference: deed.reference,
-      deed: deed.deed,
-      tpNo: deed.tpNo,
-      office: deed.office,
-      plotNo: deed.plotNo,
-      nagar: deed.nagar,
-      fieldVisit: deed.fieldVisit,
-      docNo: deed.docNo,
-      returnDocument: deed.returnDocument,
-      editFee: deed.editFee.toString(),
-      stamp: deed.stamp.toString(),
-      others: deed.others.toString(),
-      totalFee: deed.totalFee.toString(),
-      writingFee: deed.writingFee.toString(),
-      ddCommission: deed.ddCommission.toString()
-    });
+  const handleEdit = (deed, e) => {
+    e.stopPropagation(); setIsEdit(true); setCurrentDeed(deed); setReferenceType(deed.reference === "Manual Entry" ? "manual" : "vendor");
+    setFormData({ date: deed.date, vendor: deed.vendor, customerName: deed.customerName, reference: deed.reference, deed: deed.deed, tpNo: deed.tpNo, office: deed.office, plotNo: deed.plotNo, nagar: deed.nagar, fieldVisit: deed.fieldVisit, docNo: deed.docNo, returnDocument: deed.returnDocument, editFee: deed.editFee.toString(), stamp: deed.stamp.toString(), others: deed.others.toString(), totalFee: deed.totalFee.toString(), received: deed.received.toString(), balance: deed.balance.toString(), writingFee: deed.writingFee.toString(), ddCommission: deed.ddCommission.toString() });
     setShowModal(true);
   };
-
-  const handleView = (deed) => {
-    setCurrentDeed(deed);
-    setShowViewModal(true);
-  };
-
-  const handleDelete = (id) => {
-    if (window.confirm("Are you sure you want to delete this deed?")) {
-      setDeedData(deedData.filter(deed => deed.id !== id));
-    }
-  };
-
+  const handleView = (deed) => { setCurrentDeed(deed); setShowViewModal(true); };
+  const handleDelete = (id, e) => { e.stopPropagation(); if (window.confirm("Are you sure you want to delete this deed?")) { setDeedData(deedData.filter(d => d.id !== id)); } };
+  
   const handleSave = () => {
-    const totalFee = (parseFloat(formData.editFee) || 0) + (parseFloat(formData.stamp) || 0) + (parseFloat(formData.others) || 0);
-    const newDeed = {
-      ...formData,
-      id: isEdit ? currentDeed.id : Date.now(),
-      totalFee,
-      status: "Pending"
-    };
-
-    if (isEdit) {
-      setDeedData(deedData.map(deed => deed.id === currentDeed.id ? newDeed : deed));
-    } else {
-      setDeedData([...deedData, newDeed]);
-    }
+    const editFee = parseFloat(formData.editFee) || 0;
+    const stamp = parseFloat(formData.stamp) || 0;
+    const others = parseFloat(formData.others) || 0;
+    const totalFee = editFee + stamp + others;
+    const received = parseFloat(formData.received) || 0;
+    const balance = totalFee - received;
+    const status = balance <= 0 ? "Completed" : "Pending";
+    
+    const newDeed = { ...formData, id: isEdit ? currentDeed.id : Date.now(), totalFee, received, balance, status };
+    if (isEdit) { setDeedData(deedData.map(d => d.id === currentDeed.id ? newDeed : d)); } else { setDeedData([...deedData, newDeed]); }
     setShowModal(false);
   };
-
-  const handleFilterChange = (field, value) => {
-    setFilters({ ...filters, [field]: value });
-  };
-
-  const clearFilters = () => {
-    setFilters({ vendor: "", deed: "", status: "" });
-    setSearchTerm("");
-  };
+  const handleFilterChange = (field, value) => setFilters({ ...filters, [field]: value });
+  const clearFilters = () => { setFilters({ vendor: "", deed: "", status: "" }); setSearchTerm(""); setSortOption("date-desc"); };
 
   const getStatusBadge = (status) => {
-    const variants = {
-      Completed: { bg: "#10b981", icon: faCheckCircle },
-      Pending: { bg: "#f59e0b", icon: faClock }
-    };
-    const config = variants[status] || variants.Pending;
+    const config = status === "Completed" ? { bg: "#10b981", icon: faCheckCircle } : { bg: "#f59e0b", icon: faClock };
     return (
-      <Badge style={{
-        background: `linear-gradient(135deg, ${config.bg} 0%, ${config.bg}dd 100%)`,
-        border: "none",
-        padding: "8px 16px",
-        borderRadius: "20px",
-        fontWeight: "600",
-        fontSize: "0.85rem",
-        display: "inline-flex",
-        alignItems: "center",
-        gap: "6px",
-        boxShadow: `0 4px 15px ${config.bg}40`
-      }}>
-        <FontAwesomeIcon icon={config.icon} size="sm" />
-        {status}
+      <Badge style={{ background: `linear-gradient(135deg, ${config.bg} 0%, ${config.bg}dd 100%)`, color: "white", border: "none", padding: "6px 14px", borderRadius: "12px", fontWeight: "600", fontSize: "0.8rem", display: "inline-flex", alignItems: "center", gap: "6px", boxShadow: `0 4px 10px rgba(0,0,0,0.3)` }}>
+        <FontAwesomeIcon icon={config.icon} size="sm" /> {status}
       </Badge>
     );
   };
 
-  const deedTypes = [
-    "Sale Deed", "Settlement", "Power", "Release", "Rectification",
-    "Participation", "Will", "MOD", "Cancel"
-  ];
+  const getThemeVars = () => {
+    // User requested white background instead of dark
+    return `
+      --bg-main: #f4f7f6;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f8fafc;
+      --bg-input: #ffffff;
+      --border-input: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --border-glass: #e2e8f0;
+      --modal-bg: #ffffff;
+      --modal-header-bg: #f8fafc;
+      --icon-bg: #f1f5f9;
+      --action-bar: rgba(255, 255, 255, 0.95);
+      --highlight: #d97706;
+      --highlight-grad: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+      --btn-text: #0f172a;
+      --shadow-main: rgba(0,0,0,0.08);
+    `;
+  };
+
+  const formatCurrency = (val) => {
+    return Number(val || 0).toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
+  };
 
   return (
-    <div className="deed-page">
+    <div className="layout-page">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
       <div className="main-content">
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
           
-          .deed-page {
-            background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 50%, #f0f4f8 100%);
-            min-height: 100vh;
-            font-family: 'Inter', sans-serif;
-            position: relative;
-            overflow: hidden;
-          }
+          .layout-page { ${getThemeVars()} background: var(--bg-main); min-height: 100vh; font-family: 'Inter', sans-serif; position: relative; overflow-x: hidden; color: var(--text-primary); transition: background 0.3s ease; }
+          .layout-page::before { content: "📜"; position: fixed; font-size: 280px; opacity: 0.02; bottom: 100px; right: -50px; z-index: 0; transform: rotate(-25deg); pointer-events: none; }
+          .main-content { margin-left: 280px; padding: 40px; position: relative; z-index: 1; }
+          @media (max-width: 991px) { .main-content { margin-left: 0; padding: 20px; } }
 
-          /* Decorative Background Elements */
-          .deed-page::before {
-            content: "📜";
-            position: fixed;
-            font-size: 280px;
-            opacity: 0.04;
-            bottom: 100px;
-            right: -50px;
-            z-index: 0;
-            transform: rotate(-25deg);
-            pointer-events: none;
-          }
+          .page-header { margin-bottom: 24px; }
+          .page-title { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 700; color: var(--highlight); margin-bottom: 8px; letter-spacing: -0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+          
+          .stat-card { background: #0f172a; border-radius: 20px; padding: 24px 16px; text-align: center; position: relative; overflow: hidden; box-shadow: 0 15px 35px rgba(15,23,42,0.2); transition: all 0.4s ease; color: white; border: 1px solid rgba(255,255,255,0.05); }
+          .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%); transform: scaleX(0); transition: 0.4s ease; }
+          .stat-card:hover { transform: translateY(-5px); box-shadow: 0 25px 45px rgba(15,23,42,0.3); }
+          .stat-card:hover::before { transform: scaleX(1); }
 
-          .deed-page::after {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 350px;
-            height: 350px;
-            background: radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%);
-            z-index: 0;
-            pointer-events: none;
-            border-radius: 50%;
-            transform: translate(-30%, -30%);
-          }
+          .stat-icon-wrapper { width: 54px; height: 54px; border-radius: 16px; background: linear-gradient(135deg, rgba(251,191,36,0.1) 0%, rgba(217,119,6,0.2) 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; border: 1px solid rgba(251,191,36,0.3); transition: all 0.3s ease; }
+          .stat-card:hover .stat-icon-wrapper { transform: scale(1.1) rotate(5deg); background: rgba(251,191,36,0.2); }
+          .stat-icon { font-size: 1.5rem; color: #fbbf24; }
+          .stat-number { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 700; color: #ffffff; margin-bottom: 4px; }
+          .stat-label { font-size: 0.85rem; color: #94a3b8; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
           
-          .main-content {
-            margin-left: 280px;
-            padding: 40px;
-            position: relative;
-            z-index: 1;
-          }
+          .controls-bar { background: var(--action-bar); backdrop-filter: blur(24px); border-radius: 20px; padding: 24px; margin-bottom: 30px; box-shadow: 0 10px 40px var(--shadow-main); border: 1px solid var(--border-glass); }
+          .search-container { position: relative; }
+          .search-bar, .filter-select { background: var(--bg-input); border: 2px solid var(--border-input); border-radius: 14px; padding: 14px 18px; color: var(--text-primary); font-size: 0.95rem; font-weight: 500; width: 100%; transition: all 0.3s ease; }
+          .search-bar { padding-left: 48px; }
+          .search-bar:focus, .filter-select:focus { outline: none; border-color: var(--highlight); box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.15); color: var(--text-primary);}
+          .search-bar::placeholder { color: var(--text-secondary); }
+          .filter-select option { background: var(--bg-input); color: var(--text-primary); }
+          .search-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 1.1rem; }
           
-          /* Glassmorphism Cards */
-          .glass-card {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            border-radius: 24px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 
-              0 8px 32px rgba(31, 38, 135, 0.07),
-              0 2px 8px rgba(31, 38, 135, 0.04),
-              inset 0 1px 0 rgba(255, 255, 255, 0.6);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-          }
+          .btn-gold { background: var(--highlight-grad); border: none; border-radius: 14px; padding: 14px 28px; font-weight: 600; color: var(--btn-text); font-size: 0.95rem; box-shadow: 0 8px 20px rgba(217,119,6,0.15); transition: all 0.3s ease; display: inline-flex; align-items: center; justify-content: center; width: 100%; text-transform: uppercase; letter-spacing: 0.5px; }
+          .btn-gold:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(217,119,6,0.35); color: var(--btn-text);}
+          .filter-toggle { background: var(--icon-bg); border: 1px solid var(--border-input); border-radius: 14px; padding: 14px 18px; color: var(--text-primary); font-weight: 600; cursor: pointer; transition: all 0.3s ease; width: 100%; text-align: center; }
+          .filter-toggle:hover { filter: brightness(1.2); }
           
-          .glass-card:hover {
-            box-shadow: 
-              0 20px 60px rgba(31, 38, 135, 0.12),
-              0 4px 12px rgba(31, 38, 135, 0.06),
-              inset 0 1px 0 rgba(255, 255, 255, 0.8);
-          }
+          /* Modern Card Grid styling mimicking previously successful Vendors styling */
+          .data-card { background: var(--bg-card); backdrop-filter: blur(10px); border-radius: 20px; padding: 24px; position: relative; overflow: hidden; border: 1px solid var(--border-glass); box-shadow: 0 10px 30px var(--shadow-main); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); height: 100%; display: flex; flex-direction: column; cursor: pointer; color: var(--text-primary); }
+          .data-card::before { content: ''; position: absolute; top: 0; left: 0; width: 5px; height: 100%; background: var(--highlight-grad); opacity: 0; transition: opacity 0.3s ease; }
+          .data-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.2); background: var(--bg-card-hover); border-color:var(--highlight); }
+          .data-card:hover::before { opacity: 1; }
+
+          .data-card .actions-overlay { position: absolute; top: 16px; right: 16px; display: flex; gap: 8px; opacity: 0; transition: 0.3s ease; }
+          .data-card:hover .actions-overlay { opacity: 1; }
+          .circle-btn { width: 38px; height: 38px; border-radius: 50%; border: none; display: inline-flex; align-items: center; justify-content: center; background: var(--icon-bg); color: var(--text-secondary); font-size: 0.9rem; transition: all 0.2s ease; box-shadow: 0 2px 5px var(--shadow-main); }
+          .circle-btn:hover { background: var(--highlight); color: #0f172a; }
+          .circle-btn.del:hover { background: #ef4444; color: white; }
+
+          .deed-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+          .deed-number { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; color: var(--text-primary); padding-right: 80px;}
+          .deed-body { flex-grow: 1; display: flex; flex-direction: column; gap: 10px; }
+          .deed-info { font-size: 0.95rem; color: var(--text-secondary); font-weight: 500; display: flex; align-items: center; gap: 10px; }
+          .deed-info svg { color: var(--highlight); width: 16px;}
           
-          /* Neumorphic Stats Cards */
-          .stat-card {
-            background: #0f172a;
-            border-radius: 24px;
-            padding: 16px 12px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 
-              20px 20px 60px rgba(0,0,0,0.5),
-              -20px -20px 60px rgba(251,191,36,0.1);
-            transition: all 0.4s ease;
-            color: white;
+          .card-stats { background: rgba(0,0,0,0.2); border-radius: 16px; padding: 16px; margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; border: 1px solid var(--border-glass); margin-top: 20px;}
+          .stat-block .label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); font-weight: 700; letter-spacing: 0.5px; margin-bottom: 6px; }
+          .stat-block .val { font-size: 1.15rem; font-weight: 700; color: var(--text-primary); }
+          .stat-block .val.success { color: #10b981; }
+          .stat-block .val.warning { color: #ef4444; }
+
+          /* Modals */
+          .details-modal .modal-content {
+            background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(20px);
+            border-radius: 28px; border: none; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3); overflow: hidden;
           }
-          
-          .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
-          }
-          
-          .stat-icon-wrapper {
-            width: 48px;
-            height: 48px;
-            border-radius: 20px;
-            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 12px;
-            box-shadow: 
-              8px 8px 16px rgba(0,0,0,0.5),
-              -8px -8px 16px rgba(251,191,36,0.2);
-            transition: all 0.3s ease;
-          }
-          
-          .stat-card:hover .stat-icon-wrapper {
-            transform: scale(1.1) rotate(5deg);
-            box-shadow: 
-              12px 12px 24px rgba(0,0,0,0.5),
-              -12px -12px 24px rgba(251,191,36,0.2);
-          }
-          
-          .stat-icon {
-            font-size: 1.5rem;
-            color: #0f172a;
-          }
-          
-          .stat-number {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #fbbf24;
-            margin-bottom: 4px;
-          }
-          
-          .stat-label {
-            font-size: 0.8rem;
-            color: rgba(255,255,255,0.7);
-            font-weight: 500;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-          }
-          
-          /* Modern Search Bar */
-          .search-container {
-            position: relative;
-          }
-          
-          .search-bar {
-            background: rgba(255, 255, 255, 0.9);
-            border: 2px solid #0f172a;
-            border-radius: 16px;
-            padding: 14px 20px 14px 50px;
-            color: #334155;
-            font-size: 0.95rem;
-            font-weight: 500;
-            width: 100%;
-            transition: all 0.3s ease;
-            box-shadow: none;
-          }
-          
-          .search-bar:focus {
-            outline: none;
-            border-color: #fbbf24;
-            box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.15);
-          }
-          
-          .search-bar::placeholder {
-            color: #94a3b8;
-          }
-          
-          .search-icon {
-            position: absolute;
-            left: 18px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-            font-size: 1.1rem;
-          }
-          
-          /* Neumorphic Filter Selects */
-          .filter-select {
-            background: linear-gradient(145deg, #ffffff 0%, #f1f5f9 100%);
-            border: 2px solid #0f172a;
-            border-radius: 16px;
-            padding: 12px 16px;
-            color: #475569;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            box-shadow: none;
-            transition: all 0.3s ease;
-          }
-          
-          .filter-select:focus {
-            outline: none;
-            border-color: #fbbf24;
-            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.15);
-          }
-          
-          /* Gold Gradient Button */
-          .btn-gold {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
-            border: none;
-            border-radius: 16px;
-            padding: 14px 28px;
-            font-weight: 600;
-            color: #ffffff;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 0.9rem;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 
-              0 4px 15px rgba(217, 119, 6, 0.3),
-              0 8px 25px rgba(217, 119, 6, 0.2);
-            transition: all 0.3s ease;
-          }
-          
-          .btn-gold::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.5s ease;
-          }
-          
-          .btn-gold:hover {
-            transform: translateY(-2px);
-            box-shadow: 
-              0 8px 25px rgba(217, 119, 6, 0.4),
-              0 12px 35px rgba(217, 119, 6, 0.3);
-          }
-          
-          .btn-gold:hover::before {
-            left: 100%;
-          }
-          
-          .btn-gold:active {
-            transform: translateY(0);
-            box-shadow: 
-              0 2px 10px rgba(217, 119, 6, 0.3);
-          }
-          
-          /* Modern Table */
-          .table-modern {
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 20px;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 
-              0 4px 20px rgba(31, 38, 135, 0.05),
-              inset 0 1px 0 rgba(255, 255, 255, 0.8);
-          }
-          
-          .table-modern thead th {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-            color: #fbbf24;
-            border: none;
-            font-weight: 700;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 18px 16px;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: left;
-          }
-          
-          .table-modern thead th:hover {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-            color: #fbbf24;
-          }
-          
-          .table-modern tbody tr {
-            transition: all 0.3s ease;
-            border-bottom: 1px solid rgba(226, 232, 240, 0.5);
-          }
-          
-          .table-modern tbody tr:hover {
-            background: rgba(251, 191, 36, 0.05);
-            transform: scale(1.005);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-          }
-          
-          .table-modern tbody td {
-            color: #334155;
-            border: none;
-            padding: 16px;
-            font-weight: 500;
-            vertical-align: middle;
-            text-align: left;
-          }
-          
-          .table-modern tbody td:last-child {
-            text-align: center;
-          }
-          
-          .table-modern thead th:last-child {
-            text-align: center;
-          }
-          
-          /* Action Buttons */
-          .action-btn {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            border: none;
-            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-            color: #64748b;
-            margin: 0 4px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 
-              4px 4px 8px #d1d5db,
-              -4px -4px 8px #ffffff;
-            transition: all 0.3s ease;
-          }
-          
-          .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 
-              6px 6px 12px #d1d5db,
-              -6px -6px 12px #ffffff;
-          }
-          
-          .action-btn.view:hover {
-            color: #3b82f6;
-            background: linear-gradient(145deg, #eff6ff 0%, #dbeafe 100%);
-          }
-          
-          .action-btn.edit:hover {
-            color: #f59e0b;
-            background: linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%);
-          }
-          
-          .action-btn.delete:hover {
-            color: #ef4444;
-            background: linear-gradient(145deg, #fef2f2 0%, #fee2e2 100%);
-          }
-          
-          /* Modern Modal */
-          .modal-content {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.9);
-            border-radius: 24px;
-            box-shadow: 
-              0 25px 50px -12px rgba(0, 0, 0, 0.15),
-              0 0 0 1px rgba(255, 255, 255, 0.5) inset;
-            overflow: hidden;
-          }
-          
-          .modal-header {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-            padding: 24px;
-          }
-          
-          .modal-title {
-            font-family: 'Playfair Display', serif;
-            font-weight: 700;
-            color: #1e293b;
-            font-size: 1.5rem;
-          }
-          
-          .modal-body {
-            padding: 28px;
-          }
-          
-          /* Neumorphic Form Inputs */
+          .details-modal .modal-header { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border: none; padding: 24px 32px; color: white; display: flex; align-items: center; }
+          .details-modal .modal-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.6rem; letter-spacing: -0.5px; }
+          .details-modal .btn-close { filter: invert(1) grayscale(100%) brightness(200%); opacity: 0.8; }
+          .details-modal .modal-body { padding: 32px; }
+
+          .form-label-modern { font-weight: 600; color: #475569; margin-bottom: 8px; font-size: 0.9rem; }
           .form-control-modern {
-            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-            border: 2px solid transparent;
-            border-radius: 16px;
-            padding: 14px 18px;
-            color: #334155;
-            font-weight: 500;
-            box-shadow: 
-              6px 6px 12px #d1d5db,
-              -6px -6px 12px #ffffff;
-            transition: all 0.3s ease;
+            border-radius: 14px; border: 2px solid #e2e8f0; background: #f8fafc;
+            padding: 14px 18px; font-size: 0.95rem; font-weight: 500; color: #1e293b;
           }
+          .form-control-modern:focus { border-color: #fbbf24; outline: none; background: #ffffff; box-shadow: 0 0 0 4px rgba(251,191,36,0.15); }
+
+          .total-alert { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: none; border-radius: 16px; padding: 20px; font-weight: 700; color: #92400e; font-size: 1.2rem; text-align: center; }
           
-          .form-control-modern:focus {
-            outline: none;
-            border-color: #fbbf24;
-            box-shadow: 
-              0 0 0 4px rgba(251, 191, 36, 0.15),
-              6px 6px 12px #d1d5db,
-              -6px -6px 12px #ffffff;
-          }
-          
-          .form-label-modern {
-            font-weight: 600;
-            color: #475569;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-          }
-          
-          /* Total Alert */
-          .total-alert {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border: none;
-            border-radius: 16px;
-            padding: 20px;
-            font-weight: 700;
-            color: #92400e;
-            font-size: 1.2rem;
-            text-align: center;
-            box-shadow: 
-              6px 6px 12px #d1d5db,
-              -6px -6px 12px #ffffff;
-          }
-          
-          /* Page Title */
-          .page-title {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-          }
-          
-          .page-subtitle {
-            color: #64748b;
-            font-size: 1.1rem;
-            font-weight: 500;
-            margin-bottom: 32px;
-          }
-          
-          /* Filter Toggle Button */
-          .filter-toggle {
-            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-            border: none;
-            border-radius: 12px;
-            padding: 12px 16px;
-            color: #64748b;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 
-              4px 4px 8px #d1d5db,
-              -4px -4px 8px #ffffff;
-            transition: all 0.3s ease;
-          }
-          
-          .filter-toggle:hover {
-            color: #f59e0b;
-            transform: translateY(-1px);
-          }
-          
-          .filter-toggle.active {
-            color: #f59e0b;
-            background: linear-gradient(145deg, #fffbeb 0%, #fef3c7 100%);
-          }
-          
-          /* Responsive */
-          @media (max-width: 991px) {
-            .main-content {
-              margin-left: 0;
-              padding: 20px;
-            }
-            
-            .page-title {
-              font-size: 1.8rem;
-            }
-            
-            .stat-number {
-              font-size: 1.6rem;
-            }
-          }
-          
-          /* Custom scrollbar */
-          ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-          }
-          
-          ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 4px;
-          }
-          
-          ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 100%);
-            border-radius: 4px;
-          }
-          
-          ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
-          }
+          .modal-content, .modal-body { scrollbar-color: var(--highlight) transparent; scrollbar-width: thin; background: #ffffff !important; }
         `}</style>
 
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-        >
-          {/* Stats Cards */}
-          <Row className="mb-4">
-            <Col lg={3} md={6} className="mb-3">
-              <motion.div 
-                variants={itemVariants}
-                whileHover="hover"
-                initial="rest"
-                animate="rest"
-              >
-                <motion.div variants={cardHoverVariants}>
-                  <Card className="stat-card">
-                    <div className="stat-icon-wrapper">
-                      <FontAwesomeIcon icon={faFileContract} className="stat-icon" />
-                    </div>
-                    <div className="stat-number">{totalDeeds}</div>
-                    <div className="stat-label">Total Deeds</div>
-                  </Card>
-                </motion.div>
-              </motion.div>
-            </Col>
-            <Col lg={3} md={6} className="mb-3">
-              <motion.div variants={itemVariants} whileHover="hover" initial="rest" animate="rest">
-                <motion.div variants={cardHoverVariants}>
-                  <Card className="stat-card">
-                    <div className="stat-icon-wrapper">
-                      <FontAwesomeIcon icon={faCheckCircle} className="stat-icon" />
-                    </div>
-                    <div className="stat-number">{completedDeeds}</div>
-                    <div className="stat-label">Completed</div>
-                  </Card>
-                </motion.div>
-              </motion.div>
-            </Col>
-            <Col lg={3} md={6} className="mb-3">
-              <motion.div variants={itemVariants} whileHover="hover" initial="rest" animate="rest">
-                <motion.div variants={cardHoverVariants}>
-                  <Card className="stat-card">
-                    <div className="stat-icon-wrapper">
-                      <FontAwesomeIcon icon={faClock} className="stat-icon" />
-                    </div>
-                    <div className="stat-number">{pendingDeeds}</div>
-                    <div className="stat-label">Pending</div>
-                  </Card>
-                </motion.div>
-              </motion.div>
-            </Col>
-            <Col lg={3} md={6} className="mb-3">
-              <motion.div variants={itemVariants} whileHover="hover" initial="rest" animate="rest">
-                <motion.div variants={cardHoverVariants}>
-                  <Card className="stat-card">
-                    <div className="stat-icon-wrapper">
-                      <FontAwesomeIcon icon={faCalendarCheck} className="stat-icon" />
-                    </div>
-                    <div className="stat-number">{thisMonthDeeds}</div>
-                    <div className="stat-label">This Month</div>
-                  </Card>
-                </motion.div>
-              </motion.div>
-            </Col>
+        <div className="page-header d-flex justify-content-between align-items-center">
+          <div>
+            <h2 className="page-title">Deed Records Directory</h2>
+            <p style={{color:'var(--text-secondary)'}} className="mb-0">Modern and elegant legal deed management</p>
+          </div>
+        </div>
+
+        <motion.div variants={containerVariants} initial="hidden" animate="visible">
+          <Row className="mb-4 g-4">
+            <Col lg={3} md={6}><motion.div variants={itemVariants}><div className="stat-card"><div className="stat-icon-wrapper"><FontAwesomeIcon icon={faFileContract} className="stat-icon" /></div><div className="stat-number">{totalDeeds}</div><div className="stat-label">Total Deeds</div></div></motion.div></Col>
+            <Col lg={3} md={6}><motion.div variants={itemVariants}><div className="stat-card"><div className="stat-icon-wrapper"><FontAwesomeIcon icon={faCheckCircle} className="stat-icon" /></div><div className="stat-number">{completedDeeds}</div><div className="stat-label">Completed</div></div></motion.div></Col>
+            <Col lg={3} md={6}><motion.div variants={itemVariants}><div className="stat-card"><div className="stat-icon-wrapper"><FontAwesomeIcon icon={faHandHoldingUsd} className="stat-icon" /></div><div className="stat-number">{formatCurrency(totalReceived)}</div><div className="stat-label">Total Received</div></div></motion.div></Col>
+            <Col lg={3} md={6}><motion.div variants={itemVariants}><div className="stat-card"><div className="stat-icon-wrapper"><FontAwesomeIcon icon={faBalanceScale} className="stat-icon" /></div><div className="stat-number">{formatCurrency(totalBalance)}</div><div className="stat-label">Total Balance</div></div></motion.div></Col>
           </Row>
 
-          {/* Deed List Table */}
           <motion.div variants={itemVariants}>
-            <Card className="glass-card">
-              <Card.Body>
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                  <h4 style={{ fontFamily: 'Playfair Display, serif', fontWeight: 700, color: '#1e293b', margin: 0 }}>
-                    Deed Records
-                  </h4>
-                  <Badge bg="light" text="dark" style={{ fontSize: '0.9rem', padding: '8px 16px', borderRadius: '12px' }}>
-                    Showing {filteredData.length} of {deedData.length} deeds
-                  </Badge>
-                </div>
-
-                {/* Search, Filters, and Add Button */}
-                <Row className="align-items-center g-3 mb-4">
-                  <Col lg={3} md={6}>
-                    <div className="search-container">
-                      <FontAwesomeIcon icon={faSearch} className="search-icon" />
-                      <Form.Control
-                        className="search-bar"
-                        placeholder="Search by Vendor, Customer, TP No..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                    </div>
-                  </Col>
-                  <Col lg={2} md={6}>
-                    <Form.Select
-                      className="filter-select"
-                      value={filters.vendor}
-                      onChange={(e) => handleFilterChange("vendor", e.target.value)}
-                    >
-                      <option value="">All Vendors</option>
-                      {[...new Set(deedData.map(deed => deed.vendor))].map(vendor => (
-                        <option key={vendor} value={vendor}>{vendor}</option>
-                      ))}
-                    </Form.Select>
-                  </Col>
-                  <Col lg={2} md={6}>
-                    <Form.Select
-                      className="filter-select"
-                      value={filters.deed}
-                      onChange={(e) => handleFilterChange("deed", e.target.value)}
-                    >
-                      <option value="">All Deed Types</option>
-                      {deedTypes.map(deedType => (
-                        <option key={deedType} value={deedType}>{deedType}</option>
-                      ))}
-                    </Form.Select>
-                  </Col>
-                  <Col lg={2} md={6}>
-                    <Form.Select
-                      className="filter-select"
-                      value={filters.status}
-                      onChange={(e) => handleFilterChange("status", e.target.value)}
-                    >
-                      <option value="">All Status</option>
-                      <option value="Completed">Completed</option>
-                      <option value="Pending">Pending</option>
-                    </Form.Select>
-                  </Col>
-                  <Col lg={3} md={12} className="text-lg-end">
-                    <Button className="btn-gold" onClick={handleAddNew}>
-                      <FontAwesomeIcon icon={faPlus} className="me-2" /> 
-                      Add New Deed
-                    </Button>
-                  </Col>
-                </Row>
-                
-                <div className="table-responsive">
-                  <Table className="table-modern">
-                    <thead>
-                      <tr>
-                        <th onClick={() => handleSort('date')}>
-                          Date {sortConfig.key === 'date' && (
-                            <FontAwesomeIcon icon={sortConfig.direction === 'asc' ? faArrowUp : faArrowDown} size="sm" className="ms-1" />
-                          )}
-                        </th>
-                        <th onClick={() => handleSort('customerName')}>Customer</th>
-                        <th onClick={() => handleSort('deed')}>Deed Type</th>
-                        <th onClick={() => handleSort('tpNo')}>TP No</th>
-                        <th onClick={() => handleSort('nagar')}>Nagar</th>
-                        <th onClick={() => handleSort('totalFee')}>Total Fee (₹)</th>
-                        <th onClick={() => handleSort('status')}>Status</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <AnimatePresence mode="popLayout">
-                        {filteredData.map((deed, index) => (
-                          <motion.tr
-                            key={deed.id}
-                            variants={tableRowVariants}
-                            initial="hidden"
-                            animate="visible"
-                            exit="exit"
-                            transition={{ delay: index * 0.05 }}
-                            layout
-                          >
-                            <td>{new Date(deed.date).toLocaleDateString('en-GB')}</td>
-                            <td>
-                              <FontAwesomeIcon icon={faUser} className="me-2 text-muted" size="sm" />
-                              {deed.customerName}
-                            </td>
-                            <td>
-                              <Badge bg="light" text="dark" style={{ fontWeight: 500 }}>
-                                {deed.deed}
-                              </Badge>
-                            </td>
-                            <td><strong>{deed.tpNo}</strong></td>
-                            <td>
-                              <FontAwesomeIcon icon={faMapMarkerAlt} className="me-2 text-muted" size="sm" />
-                              {deed.nagar}
-                            </td>
-                            <td>
-                              <strong style={{ color: '#059669' }}>
-                                <FontAwesomeIcon icon={faMoneyBillWave} className="me-2" size="sm" />
-                                ₹{deed.totalFee.toLocaleString()}
-                              </strong>
-                            </td>
-                            <td>{getStatusBadge(deed.status)}</td>
-                            <td>
-                              <button className="action-btn view" onClick={() => handleView(deed)} title="View">
-                                <FontAwesomeIcon icon={faEye} />
-                              </button>
-                              <button className="action-btn edit" onClick={() => handleEdit(deed)} title="Edit">
-                                <FontAwesomeIcon icon={faEdit} />
-                              </button>
-                              <button className="action-btn delete" onClick={() => handleDelete(deed.id)} title="Delete">
-                                <FontAwesomeIcon icon={faTrash} />
-                              </button>
-                            </td>
-                          </motion.tr>
-                        ))}
-                      </AnimatePresence>
-                    </tbody>
-                  </Table>
-                </div>
-                
-                {filteredData.length === 0 && (
-                  <motion.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-center py-5"
-                  >
-                    <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🔍</div>
-                    <h5 style={{ color: '#64748b', fontWeight: 600 }}>No deeds found</h5>
-                    <p style={{ color: '#94a3b8' }}>Try adjusting your search or filters</p>
-                  </motion.div>
-                )}
-              </Card.Body>
-            </Card>
+            <div className="controls-bar">
+              <Row className="g-3 align-items-center">
+                <Col lg={3} md={12}><div className="search-container"><FontAwesomeIcon icon={faSearch} className="search-icon" /><input className="search-bar" placeholder="Search Customer, TP No..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></div></Col>
+                <Col lg={2} md={4}><select className="filter-select" value={filters.vendor} onChange={(e) => handleFilterChange("vendor", e.target.value)}><option value="">All Vendors</option>{[...new Set(deedData.map(d => d.vendor))].map(vendor => (<option key={vendor} value={vendor}>{vendor}</option>))}</select></Col>
+                <Col lg={2} md={4}><select className="filter-select" value={filters.deed} onChange={(e) => handleFilterChange("deed", e.target.value)}><option value="">All Deed Types</option>{deedTypes.map(deedType => (<option key={deedType} value={deedType}>{deedType}</option>))}</select></Col>
+                <Col lg={2} md={4}>
+                  <div className="d-flex position-relative align-items-center"><FontAwesomeIcon icon={faSortAmountDown} className="position-absolute ms-3" style={{color:'var(--text-secondary)', zIndex: 10}}/>
+                    <select className="filter-select ps-5" value={sortOption} onChange={(e) => setSortOption(e.target.value)}><option value="date-desc">Newest First</option><option value="date-asc">Oldest First</option><option value="totalFee-desc">Highest Cost</option><option value="totalFee-asc">Lowest Cost</option></select>
+                  </div>
+                </Col>
+                <Col lg={1} md={4}><button className="filter-toggle" onClick={clearFilters}><FontAwesomeIcon icon={faTimes}/></button></Col>
+                <Col lg={2} md={8} className="text-lg-end"><button className="btn-gold" onClick={handleAddNew}><FontAwesomeIcon icon={faPlus} className="me-2" /> Add New</button></Col>
+              </Row>
+            </div>
           </motion.div>
+
+          <Row className="g-4 pb-5">
+            <AnimatePresence>
+              {filteredData.length > 0 ? filteredData.map((deed) => (
+                <Col lg={4} md={6} xl={3} key={deed.id}>
+                  <motion.div variants={itemVariants} initial="hidden" animate="visible" exit={{ opacity: 0, scale: 0.9 }} layout className="h-100">
+                    <div className="data-card" onClick={() => handleView(deed)}>
+                      <div className="actions-overlay">
+                        <button className="circle-btn edit" onClick={(e) => handleEdit(deed, e)} title="Edit"><FontAwesomeIcon icon={faEdit}/></button>
+                        <button className="circle-btn del" onClick={(e) => handleDelete(deed.id, e)} title="Delete"><FontAwesomeIcon icon={faTrash}/></button>
+                      </div>
+                      <div className="deed-header">
+                        <div className="deed-number text-truncate" title={deed.tpNo}>TP: {deed.tpNo}</div>
+                      </div>
+                      {getStatusBadge(deed.status)}
+                      <div className="deed-body mt-3">
+                        <div className="deed-info text-truncate"><FontAwesomeIcon icon={faUser} /> <span style={{color:'var(--text-primary)'}} className="fw-bold">{deed.customerName}</span></div>
+                        <div className="deed-info text-truncate"><FontAwesomeIcon icon={faFileContract} /> {deed.deed}</div>
+                        <div className="deed-info text-truncate"><FontAwesomeIcon icon={faBuilding} /> {deed.vendor}</div>
+                        <div className="deed-info text-truncate"><FontAwesomeIcon icon={faMapMarkerAlt} /> {deed.nagar}</div>
+                      </div>
+                      
+                      <div className="card-stats">
+                         <div className="stat-block"><div className="label">Total Fee</div><div className="val">{formatCurrency(deed.totalFee)}</div></div>
+                         <div className="stat-block"><div className="label">Received</div><div className="val success">{formatCurrency(deed.received)}</div></div>
+                         <div className="stat-block" style={{ gridColumn: 'span 2' }}><div className="label">Balance Remaining</div><div className="val warning">{formatCurrency(deed.balance)}</div></div>
+                      </div>
+                      
+                    </div>
+                  </motion.div>
+                </Col>
+              )) : (
+                <Col xs={12}>
+                  <div className="text-center py-5">
+                    <div style={{ fontSize: '3rem', marginBottom: '16px' }}>📝</div>
+                    <h5 style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>No deed records found</h5>
+                  </div>
+                </Col>
+              )}
+            </AnimatePresence>
+          </Row>
         </motion.div>
 
-        {/* View Modal */}
         <AnimatePresence>
           {showViewModal && currentDeed && (
-            <Modal show={showViewModal} onHide={() => setShowViewModal(false)} centered size="xl">
-              <motion.div
-                variants={modalVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-              >
-                <Modal.Header closeButton className="modal-header">
-                  <Modal.Title className="modal-title">
-                    <FontAwesomeIcon icon={faFileContract} className="me-3" />
-                    Deed Details - {currentDeed.tpNo}
-                  </Modal.Title>
+            <Modal show={showViewModal} onHide={() => setShowViewModal(false)} centered size="xl" className="details-modal">
+              <motion.div variants={modalVariants} initial="hidden" animate="visible" exit="exit">
+                <Modal.Header closeButton>
+                  <Modal.Title><FontAwesomeIcon icon={faEye} className="me-2 text-warning"/> View Deed Record: {currentDeed.tpNo}</Modal.Title>
                 </Modal.Header>
-                <Modal.Body className="modal-body" style={{ padding: '32px' }}>
-                  {/* Status Badge */}
-                  <div className="text-center mb-4">
-                    {getStatusBadge(currentDeed.status)}
-                  </div>
+                <Modal.Body>
+                  <div className="text-center mb-4">{getStatusBadge(currentDeed.status)}</div>
+                  
+                  <Row className="g-3">
+                    <Col md={6}><Form.Group><Form.Label className="form-label-modern">Date</Form.Label><Form.Control type="text" className="form-control-modern" value={new Date(currentDeed.date).toLocaleDateString('en-GB')} disabled /></Form.Group></Col>
+                    <Col md={6}><Form.Group><Form.Label className="form-label-modern">Customer Name</Form.Label><Form.Control type="text" className="form-control-modern" value={currentDeed.customerName} disabled /></Form.Group></Col>
+                    <Col md={6}><Form.Group><Form.Label className="form-label-modern">Deed Type</Form.Label><Form.Control type="text" className="form-control-modern" value={currentDeed.deed} disabled /></Form.Group></Col>
+                    <Col md={6}><Form.Group><Form.Label className="form-label-modern">Vendor</Form.Label><Form.Control type="text" className="form-control-modern" value={currentDeed.vendor} disabled /></Form.Group></Col>
+                    <Col md={6}><Form.Group><Form.Label className="form-label-modern">Office</Form.Label><Form.Control type="text" className="form-control-modern" value={currentDeed.office} disabled /></Form.Group></Col>
+                    <Col md={6}><Form.Group><Form.Label className="form-label-modern">Nagar</Form.Label><Form.Control type="text" className="form-control-modern" value={currentDeed.nagar} disabled /></Form.Group></Col>
+                    <Col md={6}><Form.Group><Form.Label className="form-label-modern">Plot No</Form.Label><Form.Control type="text" className="form-control-modern" value={currentDeed.plotNo} disabled /></Form.Group></Col>
+                    <Col md={6}><Form.Group><Form.Label className="form-label-modern">Doc No</Form.Label><Form.Control type="text" className="form-control-modern" value={currentDeed.docNo} disabled /></Form.Group></Col>
+                    <Col md={6}><Form.Group><Form.Label className="form-label-modern">Field Visit</Form.Label><Form.Control type="text" className="form-control-modern" value={currentDeed.fieldVisit} disabled /></Form.Group></Col>
+                    <Col md={6}><Form.Group><Form.Label className="form-label-modern">Return Document</Form.Label><Form.Control type="text" className="form-control-modern" value={currentDeed.returnDocument} disabled /></Form.Group></Col>
 
-                  {/* Basic Information Card */}
-                  <Card className="glass-card mb-4">
-                    <Card.Header style={{
-                      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-                      borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
-                      padding: '20px 24px'
-                    }}>
-                      <h5 className="mb-0" style={{ color: '#1e293b', fontWeight: 700 }}>
-                        <FontAwesomeIcon icon={faFileAlt} className="me-2" />
-                        Basic Information
-                      </h5>
-                    </Card.Header>
-                    <Card.Body style={{ padding: '24px' }}>
-                      <Row className="g-4">
-                        <Col md={6}>
-                          <div className="d-flex align-items-center mb-3">
-                            <div style={{
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '12px',
-                              background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              marginRight: '16px',
-                              boxShadow: '0 4px 12px rgba(251, 191, 36, 0.3)'
-                            }}>
-                              <FontAwesomeIcon icon={faCalendarCheck} style={{ color: '#0f172a', fontSize: '1.1rem' }} />
-                            </div>
-                            <div>
-                              <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Date</div>
-                              <div style={{ fontSize: '1.1rem', color: '#1e293b', fontWeight: 600 }}>{new Date(currentDeed.date).toLocaleDateString('en-GB')}</div>
-                            </div>
-                          </div>
-                        </Col>
-                        <Col md={6}>
-                          <div className="d-flex align-items-center mb-3">
-                            <div style={{
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '12px',
-                              background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              marginRight: '16px',
-                              boxShadow: '0 4px 12px rgba(251, 191, 36, 0.3)'
-                            }}>
-                              <FontAwesomeIcon icon={faUser} style={{ color: '#0f172a', fontSize: '1.1rem' }} />
-                            </div>
-                            <div>
-                              <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Customer</div>
-                              <div style={{ fontSize: '1.1rem', color: '#1e293b', fontWeight: 600 }}>{currentDeed.customerName}</div>
-                            </div>
-                          </div>
-                        </Col>
-                        <Col md={6}>
-                          <div className="d-flex align-items-center mb-3">
-                            <div style={{
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '12px',
-                              background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              marginRight: '16px',
-                              boxShadow: '0 4px 12px rgba(251, 191, 36, 0.3)'
-                            }}>
-                              <FontAwesomeIcon icon={faBuilding} style={{ color: '#0f172a', fontSize: '1.1rem' }} />
-                            </div>
-                            <div>
-                              <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Vendor</div>
-                              <div style={{ fontSize: '1.1rem', color: '#1e293b', fontWeight: 600 }}>{currentDeed.vendor}</div>
-                            </div>
-                          </div>
-                        </Col>
-                        <Col md={6}>
-                          <div className="d-flex align-items-center mb-3">
-                            <div style={{
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '12px',
-                              background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              marginRight: '16px',
-                              boxShadow: '0 4px 12px rgba(251, 191, 36, 0.3)'
-                            }}>
-                              <FontAwesomeIcon icon={faFileContract} style={{ color: '#0f172a', fontSize: '1.1rem' }} />
-                            </div>
-                            <div>
-                              <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Deed Type</div>
-                              <div style={{ fontSize: '1.1rem', color: '#1e293b', fontWeight: 600 }}>{currentDeed.deed}</div>
-                            </div>
-                          </div>
-                        </Col>
-                      </Row>
-                    </Card.Body>
-                  </Card>
-
-                  {/* Property Information Card */}
-                  <Card className="glass-card mb-4">
-                    <Card.Header style={{
-                      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-                      borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
-                      padding: '20px 24px'
-                    }}>
-                      <h5 className="mb-0" style={{ color: '#1e293b', fontWeight: 700 }}>
-                        <FontAwesomeIcon icon={faMapMarkerAlt} className="me-2" />
-                        Property Information
-                      </h5>
-                    </Card.Header>
-                    <Card.Body style={{ padding: '24px' }}>
-                      <Row className="g-4">
-                        <Col md={4}>
-                          <div className="text-center">
-                            <div style={{
-                              width: '60px',
-                              height: '60px',
-                              borderRadius: '20px',
-                              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              margin: '0 auto 12px',
-                              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
-                            }}>
-                              <FontAwesomeIcon icon={faMapMarkerAlt} style={{ color: 'white', fontSize: '1.5rem' }} />
-                            </div>
-                            <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>TP No</div>
-                            <div style={{ fontSize: '1.2rem', color: '#1e293b', fontWeight: 700 }}>{currentDeed.tpNo}</div>
-                          </div>
-                        </Col>
-                        <Col md={4}>
-                          <div className="text-center">
-                            <div style={{
-                              width: '60px',
-                              height: '60px',
-                              borderRadius: '20px',
-                              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              margin: '0 auto 12px',
-                              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
-                            }}>
-                              <FontAwesomeIcon icon={faBuilding} style={{ color: 'white', fontSize: '1.5rem' }} />
-                            </div>
-                            <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Office</div>
-                            <div style={{ fontSize: '1.2rem', color: '#1e293b', fontWeight: 700 }}>{currentDeed.office}</div>
-                          </div>
-                        </Col>
-                        <Col md={4}>
-                          <div className="text-center">
-                            <div style={{
-                              width: '60px',
-                              height: '60px',
-                              borderRadius: '20px',
-                              background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              margin: '0 auto 12px',
-                              boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)'
-                            }}>
-                              <FontAwesomeIcon icon={faMapMarkerAlt} style={{ color: 'white', fontSize: '1.5rem' }} />
-                            </div>
-                            <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Nagar</div>
-                            <div style={{ fontSize: '1.2rem', color: '#1e293b', fontWeight: 700 }}>{currentDeed.nagar}</div>
-                          </div>
-                        </Col>
-                      </Row>
-                      <Row className="mt-4">
-                        <Col md={12}>
-                          <div className="text-center">
-                            <div style={{
-                              width: '60px',
-                              height: '60px',
-                              borderRadius: '20px',
-                              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              margin: '0 auto 12px',
-                              boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
-                            }}>
-                              <FontAwesomeIcon icon={faMapMarkerAlt} style={{ color: 'white', fontSize: '1.5rem' }} />
-                            </div>
-                            <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Plot No</div>
-                            <div style={{ fontSize: '1.2rem', color: '#1e293b', fontWeight: 700 }}>{currentDeed.plotNo}</div>
-                          </div>
-                        </Col>
-                      </Row>
-                    </Card.Body>
-                  </Card>
-
-                  {/* Process Information Card */}
-                  <Card className="glass-card mb-4">
-                    <Card.Header style={{
-                      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-                      borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
-                      padding: '20px 24px'
-                    }}>
-                      <h5 className="mb-0" style={{ color: '#1e293b', fontWeight: 700 }}>
-                        <FontAwesomeIcon icon={faClock} className="me-2" />
-                        Process Information
-                      </h5>
-                    </Card.Header>
-                    <Card.Body style={{ padding: '24px' }}>
-                      <Row className="g-4">
-                        <Col md={6}>
-                          <div className="d-flex align-items-center justify-content-center p-3" style={{
-                            background: currentDeed.fieldVisit === 'Yes' ? 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)' : 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
-                            borderRadius: '16px',
-                            border: `2px solid ${currentDeed.fieldVisit === 'Yes' ? '#16a34a' : '#dc2626'}`
-                          }}>
-                            <div style={{
-                              width: '50px',
-                              height: '50px',
-                              borderRadius: '16px',
-                              background: currentDeed.fieldVisit === 'Yes' ? 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)' : 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              marginRight: '16px',
-                              boxShadow: `0 4px 12px ${currentDeed.fieldVisit === 'Yes' ? 'rgba(22, 163, 74, 0.3)' : 'rgba(220, 38, 38, 0.3)'}`
-                            }}>
-                              <FontAwesomeIcon icon={currentDeed.fieldVisit === 'Yes' ? faCheckCircle : faTimes} style={{ color: 'white', fontSize: '1.3rem' }} />
-                            </div>
-                            <div>
-                              <div style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Field Visit</div>
-                              <div style={{ fontSize: '1.3rem', color: currentDeed.fieldVisit === 'Yes' ? '#16a34a' : '#dc2626', fontWeight: 700 }}>{currentDeed.fieldVisit}</div>
-                            </div>
-                          </div>
-                        </Col>
-                        <Col md={6}>
-                          <div className="d-flex align-items-center justify-content-center p-3" style={{
-                            background: currentDeed.returnDocument === 'Yes' ? 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)' : 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
-                            borderRadius: '16px',
-                            border: `2px solid ${currentDeed.returnDocument === 'Yes' ? '#16a34a' : '#dc2626'}`
-                          }}>
-                            <div style={{
-                              width: '50px',
-                              height: '50px',
-                              borderRadius: '16px',
-                              background: currentDeed.returnDocument === 'Yes' ? 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)' : 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              marginRight: '16px',
-                              boxShadow: `0 4px 12px ${currentDeed.returnDocument === 'Yes' ? 'rgba(22, 163, 74, 0.3)' : 'rgba(220, 38, 38, 0.3)'}`
-                            }}>
-                              <FontAwesomeIcon icon={currentDeed.returnDocument === 'Yes' ? faCheckCircle : faTimes} style={{ color: 'white', fontSize: '1.3rem' }} />
-                            </div>
-                            <div>
-                              <div style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Return Document</div>
-                              <div style={{ fontSize: '1.3rem', color: currentDeed.returnDocument === 'Yes' ? '#16a34a' : '#dc2626', fontWeight: 700 }}>{currentDeed.returnDocument}</div>
-                            </div>
-                          </div>
-                        </Col>
-                      </Row>
-                      <Row className="mt-4">
-                        <Col md={12}>
-                          <div className="text-center p-3" style={{
-                            background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
-                            borderRadius: '16px',
-                            border: '2px solid #0ea5e9'
-                          }}>
-                            <div style={{
-                              width: '50px',
-                              height: '50px',
-                              borderRadius: '16px',
-                              background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              margin: '0 auto 12px',
-                              boxShadow: '0 4px 12px rgba(14, 165, 233, 0.3)'
-                            }}>
-                              <FontAwesomeIcon icon={faFileAlt} style={{ color: 'white', fontSize: '1.3rem' }} />
-                            </div>
-                            <div style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Document Number</div>
-                            <div style={{ fontSize: '1.3rem', color: '#0ea5e9', fontWeight: 700 }}>{currentDeed.docNo}</div>
-                          </div>
-                        </Col>
-                      </Row>
-                    </Card.Body>
-                  </Card>
-
-                  {/* Financial Information Card */}
-                  <Card className="glass-card mb-4">
-                    <Card.Header style={{
-                      background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
-                      borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
-                      padding: '20px 24px'
-                    }}>
-                      <h5 className="mb-0" style={{ color: '#1e293b', fontWeight: 700 }}>
-                        <FontAwesomeIcon icon={faMoneyBillWave} className="me-2" />
-                        Financial Details
-                      </h5>
-                    </Card.Header>
-                    <Card.Body style={{ padding: '24px' }}>
-                      <Row className="g-4">
-                        <Col md={4}>
-                          <div className="text-center p-3" style={{
-                            background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                            borderRadius: '16px',
-                            border: '2px solid #f59e0b'
-                          }}>
-                            <div style={{
-                              width: '50px',
-                              height: '50px',
-                              borderRadius: '16px',
-                              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              margin: '0 auto 12px',
-                              boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
-                            }}>
-                              <FontAwesomeIcon icon={faMoneyBillWave} style={{ color: 'white', fontSize: '1.3rem' }} />
-                            </div>
-                            <div style={{ fontSize: '0.8rem', color: '#92400e', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Edit Fee</div>
-                            <div style={{ fontSize: '1.2rem', color: '#92400e', fontWeight: 700 }}>₹{currentDeed.editFee.toLocaleString()}</div>
-                          </div>
-                        </Col>
-                        <Col md={4}>
-                          <div className="text-center p-3" style={{
-                            background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                            borderRadius: '16px',
-                            border: '2px solid #f59e0b'
-                          }}>
-                            <div style={{
-                              width: '50px',
-                              height: '50px',
-                              borderRadius: '16px',
-                              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              margin: '0 auto 12px',
-                              boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
-                            }}>
-                              <FontAwesomeIcon icon={faMoneyBillWave} style={{ color: 'white', fontSize: '1.3rem' }} />
-                            </div>
-                            <div style={{ fontSize: '0.8rem', color: '#92400e', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Stamp</div>
-                            <div style={{ fontSize: '1.2rem', color: '#92400e', fontWeight: 700 }}>₹{currentDeed.stamp.toLocaleString()}</div>
-                          </div>
-                        </Col>
-                        <Col md={4}>
-                          <div className="text-center p-3" style={{
-                            background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-                            borderRadius: '16px',
-                            border: '2px solid #f59e0b'
-                          }}>
-                            <div style={{
-                              width: '50px',
-                              height: '50px',
-                              borderRadius: '16px',
-                              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              margin: '0 auto 12px',
-                              boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
-                            }}>
-                              <FontAwesomeIcon icon={faMoneyBillWave} style={{ color: 'white', fontSize: '1.3rem' }} />
-                            </div>
-                            <div style={{ fontSize: '0.8rem', color: '#92400e', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Others</div>
-                            <div style={{ fontSize: '1.2rem', color: '#92400e', fontWeight: 700 }}>₹{currentDeed.others.toLocaleString()}</div>
-                          </div>
-                        </Col>
-                      </Row>
-                      <Row className="mt-4 g-4">
-                        <Col md={6}>
-                          <div className="text-center p-3" style={{
-                            background: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)',
-                            borderRadius: '16px',
-                            border: '2px solid #0ea5e9'
-                          }}>
-                            <div style={{
-                              width: '50px',
-                              height: '50px',
-                              borderRadius: '16px',
-                              background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              margin: '0 auto 12px',
-                              boxShadow: '0 4px 12px rgba(14, 165, 233, 0.3)'
-                            }}>
-                              <FontAwesomeIcon icon={faMoneyBillWave} style={{ color: 'white', fontSize: '1.3rem' }} />
-                            </div>
-                            <div style={{ fontSize: '0.8rem', color: '#0c4a6e', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Writing Fee</div>
-                            <div style={{ fontSize: '1.2rem', color: '#0c4a6e', fontWeight: 700 }}>₹{currentDeed.writingFee.toLocaleString()}</div>
-                          </div>
-                        </Col>
-                        <Col md={6}>
-                          <div className="text-center p-3" style={{
-                            background: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)',
-                            borderRadius: '16px',
-                            border: '2px solid #0ea5e9'
-                          }}>
-                            <div style={{
-                              width: '50px',
-                              height: '50px',
-                              borderRadius: '16px',
-                              background: 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              margin: '0 auto 12px',
-                              boxShadow: '0 4px 12px rgba(14, 165, 233, 0.3)'
-                            }}>
-                              <FontAwesomeIcon icon={faMoneyBillWave} style={{ color: 'white', fontSize: '1.3rem' }} />
-                            </div>
-                            <div style={{ fontSize: '0.8rem', color: '#0c4a6e', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>DD Commission</div>
-                            <div style={{ fontSize: '1.2rem', color: '#0c4a6e', fontWeight: 700 }}>₹{currentDeed.ddCommission.toLocaleString()}</div>
-                          </div>
-                        </Col>
-                      </Row>
-                    </Card.Body>
-                  </Card>
-
-                  {/* Total Amount Card */}
-                  <Card className="glass-card">
-                    <Card.Body style={{ padding: '32px', textAlign: 'center' }}>
-                      <div style={{
-                        width: '80px',
-                        height: '80px',
-                        borderRadius: '24px',
-                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        margin: '0 auto 20px',
-                        boxShadow: '0 8px 24px rgba(16, 185, 129, 0.4)'
-                      }}>
-                        <FontAwesomeIcon icon={faMoneyBillWave} style={{ color: 'white', fontSize: '2rem' }} />
-                      </div>
-                      <h3 style={{ color: '#059669', fontWeight: 700, marginBottom: '8px' }}>Total Amount</h3>
-                      <div style={{
-                        fontSize: '2.5rem',
-                        fontWeight: 800,
-                        color: '#059669',
-                        textShadow: '0 2px 4px rgba(5, 150, 105, 0.2)'
-                      }}>
-                        ₹{currentDeed.totalFee.toLocaleString()}
-                      </div>
-                      <div style={{ color: '#64748b', fontSize: '1rem', marginTop: '8px' }}>
-                        (Edit Fee + Stamp + Others)
-                      </div>
-                    </Card.Body>
-                  </Card>
+                    <h5 className="mt-5 mb-3 fw-bold w-100" style={{color: '#475569'}}><FontAwesomeIcon icon={faWallet} className="me-2"/> Invoice Breakdown</h5>
+                    
+                    <Col md={4}><Form.Group><Form.Label className="form-label-modern">Edit Fee</Form.Label><Form.Control type="text" className="form-control-modern" value={formatCurrency(currentDeed.editFee)} disabled /></Form.Group></Col>
+                    <Col md={4}><Form.Group><Form.Label className="form-label-modern">Stamp</Form.Label><Form.Control type="text" className="form-control-modern" value={formatCurrency(currentDeed.stamp)} disabled /></Form.Group></Col>
+                    <Col md={4}><Form.Group><Form.Label className="form-label-modern">Others</Form.Label><Form.Control type="text" className="form-control-modern" value={formatCurrency(currentDeed.others)} disabled /></Form.Group></Col>
+                    <Col md={6}><Form.Group><Form.Label className="form-label-modern">Writing Fee (Non-billable)</Form.Label><Form.Control type="text" className="form-control-modern" value={formatCurrency(currentDeed.writingFee)} disabled /></Form.Group></Col>
+                    <Col md={6}><Form.Group><Form.Label className="form-label-modern">DD Commission (Non-billable)</Form.Label><Form.Control type="text" className="form-control-modern" value={formatCurrency(currentDeed.ddCommission)} disabled /></Form.Group></Col>
+                  </Row>
+                  
+                  <Row className="mt-4">
+                    <Col md={4}><Alert className="total-alert border-0 p-3"><span style={{fontSize: '0.9rem', display: 'block', color:'#b45309'}}>Cost</span> ₹{currentDeed.totalFee.toLocaleString()}</Alert></Col>
+                    <Col md={4}><Alert className="total-alert border-0 p-3" style={{background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)', color: '#064e3b'}}><span style={{fontSize: '0.9rem', display: 'block', color:'#047857'}}>Received</span> ₹{currentDeed.received.toLocaleString()}</Alert></Col>
+                    <Col md={4}><Alert className="total-alert border-0 p-3" style={{background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)', color: '#7f1d1d'}}><span style={{fontSize: '0.9rem', display: 'block', color:'#b91c1c'}}>Balance</span> ₹{currentDeed.balance.toLocaleString()}</Alert></Col>
+                  </Row>
+                  
                 </Modal.Body>
                 <Modal.Footer className="border-0 px-4 pb-4">
-                  <Button 
-                    className="btn-gold"
-                    onClick={() => setShowViewModal(false)}
-                  >
-                    <FontAwesomeIcon icon={faTimes} className="me-2" />
-                    Close
-                  </Button>
+                  <Button variant="light" className="px-4 py-2" onClick={() => setShowViewModal(false)} style={{borderRadius:'12px', fontWeight:600}}>Close</Button>
                 </Modal.Footer>
               </motion.div>
             </Modal>
           )}
         </AnimatePresence>
 
-        {/* Add/Edit Modal */}
         <AnimatePresence>
           {showModal && (
-            <Modal show={showModal} onHide={() => setShowModal(false)} centered size="lg">
-              <motion.div
-                variants={modalVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-              >
-                <Modal.Header closeButton className="modal-header">
-                  <Modal.Title className="modal-title">
-                    {isEdit ? "✏️ Edit Deed Details" : "➕ Add New Deed"}
-                  </Modal.Title>
+            <Modal show={showModal} onHide={() => setShowModal(false)} centered size="xl" className="details-modal" backdrop="static">
+              <motion.div variants={modalVariants} initial="hidden" animate="visible" exit="exit">
+                <Modal.Header closeButton>
+                   <Modal.Title>{isEdit ? <><FontAwesomeIcon icon={faEdit} className="me-2 text-warning"/> Edit Deed Record</> : <><FontAwesomeIcon icon={faPlus} className="me-2 text-warning"/> Add New Deed Record</>}</Modal.Title>
                 </Modal.Header>
-                <Modal.Body className="modal-body">
+                <Modal.Body>
                   <Form>
                     <Row className="g-3">
-                      <Col md={6}>
-                        <Form.Group>
-                          <Form.Label className="form-label-modern">Date</Form.Label>
-                          <Form.Control
-                            type="date"
-                            className="form-control-modern"
-                            value={formData.date}
-                            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                          />
-                        </Form.Group>
-                      </Col>
-                      <Col md={6}>
-                        <Form.Group>
-                          <Form.Label className="form-label-modern">Vendor</Form.Label>
-                          <Form.Select
-                            className="form-control-modern"
-                            value={formData.vendor}
-                            onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
-                          >
-                            <option value="">Select Vendor</option>
-                            {dummyVendorList.map(vendor => (
-                              <option key={vendor.id} value={vendor.name}>{vendor.name}</option>
-                            ))}
-                            <option value="Normal Customer">Normal Customer</option>
-                          </Form.Select>
-                        </Form.Group>
-                      </Col>
+                      <Col md={4}><Form.Group><Form.Label className="form-label-modern">Date</Form.Label><Form.Control type="date" className="form-control-modern" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} /></Form.Group></Col>
+                      <Col md={4}><Form.Group><Form.Label className="form-label-modern">Customer Name</Form.Label><Form.Control type="text" className="form-control-modern" placeholder="Enter customer" value={formData.customerName} onChange={(e) => setFormData({ ...formData, customerName: e.target.value })} /></Form.Group></Col>
+                      <Col md={4}><Form.Group><Form.Label className="form-label-modern">Deed Type</Form.Label><Form.Select className="form-control-modern" value={formData.deed} onChange={(e) => setFormData({ ...formData, deed: e.target.value })}><option value="">Select Deed Type</option>{deedTypes.map(d => <option key={d} value={d}>{d}</option>)}</Form.Select></Form.Group></Col>
+                      <Col md={4}><Form.Group><Form.Label className="form-label-modern">Vendor</Form.Label><Form.Control type="text" className="form-control-modern" placeholder="Enter vendor" value={formData.vendor} onChange={(e) => setFormData({ ...formData, vendor: e.target.value })} /></Form.Group></Col>
+                      <Col md={4}><Form.Group><Form.Label className="form-label-modern">TP No</Form.Label><Form.Control type="text" className="form-control-modern" placeholder="Enter TP No" value={formData.tpNo} onChange={(e) => setFormData({ ...formData, tpNo: e.target.value })} /></Form.Group></Col>
+                      <Col md={4}><Form.Group><Form.Label className="form-label-modern">Document No</Form.Label><Form.Control type="text" className="form-control-modern" placeholder="Enter Doc No" value={formData.docNo} onChange={(e) => setFormData({ ...formData, docNo: e.target.value })} /></Form.Group></Col>
+                      <Col md={4}><Form.Group><Form.Label className="form-label-modern">Office</Form.Label><Form.Control type="text" className="form-control-modern" placeholder="Enter office" value={formData.office} onChange={(e) => setFormData({ ...formData, office: e.target.value })} /></Form.Group></Col>
+                      <Col md={4}><Form.Group><Form.Label className="form-label-modern">Nagar</Form.Label><Form.Control type="text" className="form-control-modern" placeholder="Enter nagar" value={formData.nagar} onChange={(e) => setFormData({ ...formData, nagar: e.target.value })} /></Form.Group></Col>
+                      <Col md={4}><Form.Group><Form.Label className="form-label-modern">Plot No</Form.Label><Form.Control type="text" className="form-control-modern" placeholder="Enter plot no" value={formData.plotNo} onChange={(e) => setFormData({ ...formData, plotNo: e.target.value })} /></Form.Group></Col>
+                      <Col md={6}><Form.Group><Form.Label className="form-label-modern">Field Visit</Form.Label><Form.Select className="form-control-modern" value={formData.fieldVisit} onChange={(e) => setFormData({ ...formData, fieldVisit: e.target.value })}><option value="Yes">Yes</option><option value="No">No</option></Form.Select></Form.Group></Col>
+                      <Col md={6}><Form.Group><Form.Label className="form-label-modern">Return Doc</Form.Label><Form.Select className="form-control-modern" value={formData.returnDocument} onChange={(e) => setFormData({ ...formData, returnDocument: e.target.value })}><option value="Yes">Yes</option><option value="No">No</option></Form.Select></Form.Group></Col>
                     </Row>
-                    
                     <Row className="g-3 mt-1">
-                      <Col md={6}>
+                      <Col md={3}><Form.Group><Form.Label className="form-label-modern">Edit Fee (₹)</Form.Label><Form.Control type="number" className="form-control-modern" placeholder="0" value={formData.editFee} onChange={(e) => setFormData({ ...formData, editFee: e.target.value })} /></Form.Group></Col>
+                      <Col md={3}><Form.Group><Form.Label className="form-label-modern">Stamp (₹)</Form.Label><Form.Control type="number" className="form-control-modern" placeholder="0" value={formData.stamp} onChange={(e) => setFormData({ ...formData, stamp: e.target.value })} /></Form.Group></Col>
+                      <Col md={3}><Form.Group><Form.Label className="form-label-modern">Others (₹)</Form.Label><Form.Control type="number" className="form-control-modern" placeholder="0" value={formData.others} onChange={(e) => setFormData({ ...formData, others: e.target.value })} /></Form.Group></Col>
+                      <Col md={3}>
                         <Form.Group>
-                          <Form.Label className="form-label-modern">Customer Name</Form.Label>
-                          <Form.Control
-                            type="text"
-                            className="form-control-modern"
-                            placeholder="Enter customer name"
-                            value={formData.customerName}
-                            onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                          />
+                          <Form.Label className="form-label-modern text-success">Actually Received (₹)</Form.Label>
+                          <Form.Control type="number" className="form-control-modern" style={{borderColor:'#10b981'}} placeholder="0" value={formData.received} onChange={(e) => setFormData({ ...formData, received: e.target.value })} />
                         </Form.Group>
                       </Col>
-                      <Col md={6}>
-                        <Form.Group>
-                          <Form.Label className="form-label-modern">Reference</Form.Label>
-                          <div className="d-flex gap-2">
-                            <Form.Select
-                              className="form-control-modern"
-                              style={{ flex: 1 }}
-                              value={referenceType}
-                              onChange={(e) => setReferenceType(e.target.value)}
-                            >
-                              <option value="vendor">Vendor</option>
-                              <option value="manual">Manual Entry</option>
-                            </Form.Select>
-                            {referenceType === "vendor" ? (
-                              <Form.Select
-                                className="form-control-modern"
-                                style={{ flex: 2 }}
-                                value={formData.reference}
-                                onChange={(e) => setFormData({ ...formData, reference: e.target.value })}
-                              >
-                                <option value="">Select Vendor</option>
-                                {dummyVendorList.map(vendor => (
-                                  <option key={vendor.id} value={vendor.name}>{vendor.name}</option>
-                                ))}
-                              </Form.Select>
-                            ) : (
-                              <Form.Control
-                                type="text"
-                                className="form-control-modern"
-                                style={{ flex: 2 }}
-                                placeholder="Enter reference manually"
-                                value={formData.reference}
-                                onChange={(e) => setFormData({ ...formData, reference: e.target.value })}
-                              />
-                            )}
-                          </div>
-                        </Form.Group>
-                      </Col>
+                      <Col md={6}><Form.Group><Form.Label className="form-label-modern">Writing Fee (₹)</Form.Label><Form.Control type="number" className="form-control-modern" placeholder="0" value={formData.writingFee} onChange={(e) => setFormData({ ...formData, writingFee: e.target.value })} /></Form.Group></Col>
+                      <Col md={6}><Form.Group><Form.Label className="form-label-modern">DD Commission (₹)</Form.Label><Form.Control type="number" className="form-control-modern" placeholder="0" value={formData.ddCommission} onChange={(e) => setFormData({ ...formData, ddCommission: e.target.value })} /></Form.Group></Col>
                     </Row>
-                    
-                    <Row className="g-3 mt-1">
-                      <Col md={6}>
-                        <Form.Group>
-                          <Form.Label className="form-label-modern">Deed Type</Form.Label>
-                          <Form.Select
-                            className="form-control-modern"
-                            value={formData.deed}
-                            onChange={(e) => setFormData({ ...formData, deed: e.target.value })}
-                          >
-                            <option value="">Select Deed Type</option>
-                            {deedTypes.map(deedType => (
-                              <option key={deedType} value={deedType}>{deedType}</option>
-                            ))}
-                          </Form.Select>
-                        </Form.Group>
-                      </Col>
-                      <Col md={6}>
-                        <Form.Group>
-                          <Form.Label className="form-label-modern">TP No</Form.Label>
-                          <Form.Control
-                            type="text"
-                            className="form-control-modern"
-                            placeholder="Enter TP number"
-                            value={formData.tpNo}
-                            onChange={(e) => setFormData({ ...formData, tpNo: e.target.value })}
-                          />
-                        </Form.Group>
-                      </Col>
+                    <Row className="mt-4 mb-2">
+                       <Col md={6}>
+                         <Alert className="total-alert border-0" style={{background:'rgba(251,191,36,0.1)'}}><FontAwesomeIcon icon={faMoneyBillWave} className="me-2" /> Cost: {formatCurrency((parseFloat(formData.editFee)||0) + (parseFloat(formData.stamp)||0) + (parseFloat(formData.others)||0))}</Alert>
+                       </Col>
+                       <Col md={6}>
+                         <Alert className="total-alert border-0" style={{background:'rgba(239, 68, 68, 0.1)', color: '#ef4444'}}><FontAwesomeIcon icon={faBalanceScale} className="me-2" /> Due Balance: {formatCurrency(((parseFloat(formData.editFee)||0) + (parseFloat(formData.stamp)||0) + (parseFloat(formData.others)||0)) - (parseFloat(formData.received)||0))}</Alert>
+                       </Col>
                     </Row>
-                    
-                    <Row className="g-3 mt-1">
-                      <Col md={6}>
-                        <Form.Group>
-                          <Form.Label className="form-label-modern">Office</Form.Label>
-                          <Form.Control
-                            type="text"
-                            className="form-control-modern"
-                            placeholder="Enter office"
-                            value={formData.office}
-                            onChange={(e) => setFormData({ ...formData, office: e.target.value })}
-                          />
-                        </Form.Group>
-                      </Col>
-                      <Col md={6}>
-                        <Form.Group>
-                          <Form.Label className="form-label-modern">Plot No</Form.Label>
-                          <Form.Control
-                            type="text"
-                            className="form-control-modern"
-                            placeholder="Enter plot number"
-                            value={formData.plotNo}
-                            onChange={(e) => setFormData({ ...formData, plotNo: e.target.value })}
-                          />
-                        </Form.Group>
-                      </Col>
-                    </Row>
-                    
-                    <Row className="g-3 mt-1">
-                      <Col md={12}>
-                        <Form.Group>
-                          <Form.Label className="form-label-modern">Nagar</Form.Label>
-                          <Form.Control
-                            type="text"
-                            className="form-control-modern"
-                            placeholder="Enter nagar"
-                            value={formData.nagar}
-                            onChange={(e) => setFormData({ ...formData, nagar: e.target.value })}
-                          />
-                        </Form.Group>
-                      </Col>
-                    </Row>
-                    
-                    {isEdit && (
-                      <>
-                        <hr className="my-4" />
-                        <h6 className="mb-3" style={{ color: '#475569', fontWeight: 600 }}>Additional Details</h6>
-                        
-                        <Row className="g-3">
-                          <Col md={6}>
-                            <Form.Group>
-                              <Form.Label className="form-label-modern">Field Visit</Form.Label>
-                              <Form.Select
-                                className="form-control-modern"
-                                value={formData.fieldVisit}
-                                onChange={(e) => setFormData({ ...formData, fieldVisit: e.target.value })}
-                              >
-                                <option value="No">No</option>
-                                <option value="Yes">Yes</option>
-                              </Form.Select>
-                            </Form.Group>
-                          </Col>
-                          <Col md={6}>
-                            <Form.Group>
-                              <Form.Label className="form-label-modern">Doc No</Form.Label>
-                              <Form.Control
-                                type="text"
-                                className="form-control-modern"
-                                placeholder="Enter document number"
-                                value={formData.docNo}
-                                onChange={(e) => setFormData({ ...formData, docNo: e.target.value })}
-                              />
-                            </Form.Group>
-                          </Col>
-                        </Row>
-                        
-                        <Row className="g-3 mt-1">
-                          <Col md={6}>
-                            <Form.Group>
-                              <Form.Label className="form-label-modern">Return Document</Form.Label>
-                              <Form.Select
-                                className="form-control-modern"
-                                value={formData.returnDocument}
-                                onChange={(e) => setFormData({ ...formData, returnDocument: e.target.value })}
-                              >
-                                <option value="No">No</option>
-                                <option value="Yes">Yes</option>
-                              </Form.Select>
-                            </Form.Group>
-                          </Col>
-                        </Row>
-                        
-                        <Row className="g-3 mt-1">
-                          <Col md={4}>
-                            <Form.Group>
-                              <Form.Label className="form-label-modern">Edit Fee (₹)</Form.Label>
-                              <Form.Control
-                                type="number"
-                                className="form-control-modern"
-                                placeholder="0.00"
-                                value={formData.editFee}
-                                onChange={(e) => setFormData({ ...formData, editFee: e.target.value })}
-                              />
-                            </Form.Group>
-                          </Col>
-                          <Col md={4}>
-                            <Form.Group>
-                              <Form.Label className="form-label-modern">Stamp (₹)</Form.Label>
-                              <Form.Control
-                                type="number"
-                                className="form-control-modern"
-                                placeholder="0.00"
-                                value={formData.stamp}
-                                onChange={(e) => setFormData({ ...formData, stamp: e.target.value })}
-                              />
-                            </Form.Group>
-                          </Col>
-                          <Col md={4}>
-                            <Form.Group>
-                              <Form.Label className="form-label-modern">Others (₹)</Form.Label>
-                              <Form.Control
-                                type="number"
-                                className="form-control-modern"
-                                placeholder="0.00"
-                                value={formData.others}
-                                onChange={(e) => setFormData({ ...formData, others: e.target.value })}
-                              />
-                            </Form.Group>
-                          </Col>
-                        </Row>
-                        
-                        <Row className="g-3 mt-1">
-                          <Col md={6}>
-                            <Form.Group>
-                              <Form.Label className="form-label-modern">Writing Fee (₹)</Form.Label>
-                              <Form.Control
-                                type="number"
-                                className="form-control-modern"
-                                placeholder="0.00"
-                                value={formData.writingFee}
-                                onChange={(e) => setFormData({ ...formData, writingFee: e.target.value })}
-                              />
-                            </Form.Group>
-                          </Col>
-                          <Col md={6}>
-                            <Form.Group>
-                              <Form.Label className="form-label-modern">DD Commission (₹)</Form.Label>
-                              <Form.Control
-                                type="number"
-                                className="form-control-modern"
-                                placeholder="0.00"
-                                value={formData.ddCommission}
-                                onChange={(e) => setFormData({ ...formData, ddCommission: e.target.value })}
-                              />
-                            </Form.Group>
-                          </Col>
-                        </Row>
-                        
-                        <Row className="mt-4">
-                          <Col>
-                            <Alert className="total-alert">
-                              <FontAwesomeIcon icon={faMoneyBillWave} className="me-2" />
-                              Total Fee: ₹{((parseFloat(formData.editFee) || 0) + (parseFloat(formData.stamp) || 0) + (parseFloat(formData.others) || 0)).toLocaleString()}
-                            </Alert>
-                          </Col>
-                        </Row>
-                      </>
-                    )}
                   </Form>
                 </Modal.Body>
                 <Modal.Footer className="border-0 px-4 pb-4">
-                  <Button 
-                    variant="light" 
-                    onClick={() => setShowModal(false)}
-                    style={{
-                      borderRadius: '16px',
-                      padding: '12px 24px',
-                      fontWeight: 600,
-                      boxShadow: '4px 4px 8px #d1d5db, -4px -4px 8px #ffffff'
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button className="btn-gold" onClick={handleSave}>
-                    <FontAwesomeIcon icon={isEdit ? faEdit : faPlus} className="me-2" />
-                    {isEdit ? "Update Deed" : "Add Deed"}
-                  </Button>
+                  <Button variant="light" className="px-4 py-2 border-secondary" onClick={() => setShowModal(false)} style={{borderRadius: '14px', fontWeight: 600}}>Cancel</Button>
+                  <button className="btn-gold w-auto d-inline-flex" onClick={handleSave}><FontAwesomeIcon icon={isEdit ? faEdit : faPlus} className="me-2" /> {isEdit ? "Update Record" : "Save Record"}</button>
                 </Modal.Footer>
               </motion.div>
             </Modal>
