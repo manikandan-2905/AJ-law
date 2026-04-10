@@ -1,5 +1,6 @@
-import React from "react";
-import { Container, Row, Col, Card, Badge, Button } from "react-bootstrap";
+import React, { useState } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { Row, Col, Card, Badge, Button, Nav } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faMapMarkedAlt,
@@ -7,645 +8,433 @@ import {
   faFolderOpen,
   faUserFriends,
   faChartLine,
+  faChartBar,
   faChartPie,
   faWallet,
-  faGauge,
-  faUserShield,
-  faClipboardList,
   faCalendarAlt,
-  faMoneyCheckAlt
+  faMoneyCheckAlt,
+  faClock,
+  faCheckCircle,
+  faArrowRight,
+  faExclamationTriangle,
+  faTasks,
+  faBell
 } from "@fortawesome/free-solid-svg-icons";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
+// Dummy Data Collections
 const dashboardSummary = [
-  { title: "Vendors", value: 48, subtitle: "Active vendors", icon: faUserFriends, accent: "#f59e0b" },
-  { title: "Agreements", value: 34, subtitle: "Open agreements", icon: faFolderOpen, accent: "#0ea5e9" },
-  { title: "Deeds", value: 28, subtitle: "Signed deeds", icon: faFileAlt, accent: "#10b981" },
-  { title: "EC Records", value: 22, subtitle: "Pending certificates", icon: faMapMarkedAlt, accent: "#8b5cf6" },
-  { title: "Payments", value: 17, subtitle: "Due payments", icon: faMoneyCheckAlt, accent: "#ef4444" },
-  { title: "Clients", value: 76, subtitle: "Active clients", icon: faUserShield, accent: "#14b8a6" }
+  { title: "Total Vendors", value: 48, increase: "+3 this week", icon: faUserFriends, accent: "#fbbf24" },
+  { title: "Active Agreements", value: 34, increase: "8 pending", icon: faFolderOpen, accent: "#f59e0b" },
+  { title: "Processed Deeds", value: 128, increase: "+14 this month", icon: faFileAlt, accent: "#d97706" },
+  { title: "Pending EC", value: 22, increase: "-4 since yesterday", icon: faMapMarkedAlt, accent: "#b45309" }
 ];
 
-const monthlyTrend = [118, 132, 145, 160, 173, 168, 180, 192, 206, 220, 234, 248];
-const moduleDistribution = [
-  { label: "Agreements", value: 35, color: "#0ea5e9" },
-  { label: "Deeds", value: 25, color: "#10b981" },
-  { label: "EC", value: 18, color: "#8b5cf6" },
-  { label: "Nagal", value: 12, color: "#f59e0b" },
-  { label: "Payments", value: 10, color: "#ef4444" }
+const revenueData = [
+  { month: "May", rev: 12, label: "₹12L" },
+  { month: "Jun", rev: 19, label: "₹19L" },
+  { month: "Jul", rev: 15, label: "₹15L" },
+  { month: "Aug", rev: 22, label: "₹22L" },
+  { month: "Sep", rev: 18, label: "₹18L" },
+  { month: "Oct", rev: 24, label: "₹24L" },
 ];
 
-const recentActions = [
-  { time: "1h ago", action: "New rental agreement created", user: "Alex Sharma" },
-  { time: "3h ago", action: "Deed document signed", user: "Priya Singh" },
-  { time: "7h ago", action: "Payment pending reminder sent", user: "Finance team" },
-  { time: "1d ago", action: "EC record verified", user: "Rohit Kumar" }
+const distributionData = [
+  { label: "Sale Deeds", value: 45, color: "#f59e0b" },
+  { label: "EC Records", value: 25, color: "#10b981" },
+  { label: "Agreements", value: 20, color: "#0ea5e9" },
+  { label: "Nagal/Adangal", value: 10, color: "#6366f1" }
 ];
 
-const pageInsights = [
-  { title: "Vendor Management", value: "14%", detail: "growth", icon: faUserFriends },
-  { title: "EC Processing", value: "8%", detail: "faster review", icon: faMapMarkedAlt },
-  { title: "Agreement Flow", value: "22%", detail: "new contracts", icon: faFolderOpen },
-  { title: "Payment Pulse", value: "12%", detail: "collection rate", icon: faMoneyCheckAlt }
+const recentActionsData = {
+  all: [
+    { time: "10 mins ago", action: "Payment of ₹45,000 received for DEED-009", user: "John Doe", type: "success" },
+    { time: "1 hour ago", action: "Sale Deed DOC004 verified by Manager", user: "Priya Singh", type: "info" },
+    { time: "3 hours ago", action: "New Vendor onboarding complete (Vendor C)", user: "Admin", type: "primary" },
+    { time: "Yesterday", action: "EC Record EC002 status marked Completed", user: "Alex Sharma", type: "success" },
+    { time: "Yesterday", action: "Overdue balance alert for Agreement AGR001", user: "System", type: "warning" },
+    { time: "Oct 08", action: "Generated monthly billing report", user: "Finance Team", type: "info" }
+  ],
+  payments: [
+    { time: "10 mins ago", action: "Payment of ₹45,000 received for DEED-009", user: "John Doe", type: "success" },
+    { time: "Yesterday", action: "Payment of ₹15,000 received for EC001", user: "Alex Sharma", type: "success" },
+  ],
+  documents: [
+    { time: "1 hour ago", action: "Sale Deed DOC004 verified by Manager", user: "Priya Singh", type: "info" },
+    { time: "Yesterday", action: "EC Record EC002 status marked Completed", user: "Alex Sharma", type: "success" },
+  ]
+};
+
+const pendingTasks = [
+  { id: 1, doc: "AGR-089", desc: "Client signature missing", priority: "High" },
+  { id: 2, doc: "EC-112", desc: "Awaiting field visit report", priority: "Medium" },
+  { id: 3, doc: "Vendor-B", desc: "Commission payment overdue", priority: "High" },
+  { id: 4, doc: "DEED-004", desc: "Registration fee clearance", priority: "Low" }
 ];
 
-const Dashboard = ({ activeTab }) => {
-  const renderContent = () => {
-    switch (activeTab) {
-      case "dashboard":
-        return <DashboardOverview />;
-      case "ec":
-        return <LandEC />;
-      case "nagal":
-        return <NagalAdangal />;
-      case "patta":
-        return <PattaRecords />;
-      case "clients":
-        return <Clients />;
-      case "history":
-        return <CaseHistory />;
-      default:
-        return <DashboardOverview />;
-    }
+// Animation Variants
+const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } } };
+const itemVariants = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 100, damping: 15 } } };
+const barVariants = { hidden: { height: 0 }, visible: (custom) => ({ height: custom, transition: { duration: 0.8, type: "spring", bounce: 0.3 } }) };
+
+const Dashboard = () => {
+  const [activityTab, setActivityTab] = useState("all");
+
+  const getThemeVars = () => {
+    return `
+      --bg-main: #f4f7f6;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f8fafc;
+      --bg-input: #f8fafc;
+      --border-input: #e2e8f0;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --border-glass: #e2e8f0;
+      --highlight: #d97706;
+      --highlight-grad: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+      --shadow-main: rgba(0,0,0,0.08);
+      --icon-bg: #f1f5f9;
+    `;
+  };
+
+  const getStatusBadge = (priority) => {
+    const config = priority === "High" ? { bg: "#ef4444", text: "HIGH" } 
+                 : priority === "Medium" ? { bg: "#f59e0b", text: "MED" } 
+                 : { bg: "#3b82f6", text: "LOW" };
+    return (
+      <Badge style={{ background: config.bg, padding: "4px 8px", borderRadius: "8px", fontSize: "0.7rem", fontWeight: "700" }}>
+        {config.text}
+      </Badge>
+    );
   };
 
   return (
-    <div className="main-content dashboard-shell">
+    <div className="layout-page main-content dashboard-shell">
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+        
         .dashboard-shell {
-          margin-left: 280px;
-          padding: 30px;
+          ${getThemeVars()}
+          font-family: 'Inter', sans-serif;
+          background: var(--bg-main);
           min-height: 100vh;
-          background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
-          color: #0f172a;
+          margin-left: 280px;
+          padding: 40px;
           position: relative;
-          overflow: hidden;
+          color: var(--text-primary);
+          overflow-x: hidden;
         }
 
-        /* Decorative Background Elements */
-        .dashboard-shell::before {
-          content: "⚖";
+        /* Ambient floating shapes */
+        .ambient-shape {
           position: fixed;
-          font-size: 320px;
-          opacity: 0.04;
-          bottom: -80px;
-          left: 50px;
-          color: #0f172a;
-          z-index: 0;
-          transform: rotate(-20deg);
-          pointer-events: none;
-        }
-
-        .dashboard-shell::after {
-          content: "";
-          position: fixed;
-          bottom: 0;
-          right: 0;
-          width: 400px;
-          height: 400px;
-          background: radial-gradient(circle, rgba(251,191,36,0.05) 0%, transparent 70%);
-          z-index: 0;
-          pointer-events: none;
           border-radius: 50%;
+          filter: blur(80px);
+          z-index: 0;
+          pointer-events: none;
         }
+        .shape-1 { top: -100px; right: -50px; width: 400px; height: 400px; background: rgba(251, 191, 36, 0.08); animation: float 10s ease-in-out infinite; }
+        .shape-2 { bottom: -150px; left: -100px; width: 500px; height: 500px; background: rgba(14, 165, 233, 0.05); animation: float 14s ease-in-out infinite reverse; }
 
-        .dashboard-hero {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 24px;
-          margin-bottom: 32px;
-          position: relative;
-          z-index: 1;
-        }
+        @keyframes float { 0% { transform: translate(0, 0); } 50% { transform: translate(20px, 30px); } 100% { transform: translate(0, 0); } }
 
-        .dashboard-heading {
-          font-size: clamp(2rem, 2.6vw, 3rem);
-          font-weight: 800;
-          line-height: 1.05;
-          letter-spacing: -0.03em;
-          margin-bottom: 12px;
-        }
+        .page-header { margin-bottom: 24px; position:relative; z-index:1; }
+        .page-title { font-family: 'Playfair Display', serif; font-size: 2.6rem; font-weight: 700; color: var(--highlight); margin-bottom: 8px; letter-spacing: -0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
-        .dashboard-subtitle {
-          font-size: 1rem;
-          color: #475569;
-          max-width: 680px;
-          line-height: 1.7;
-        }
-
-        .hero-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 10px;
-          padding: 14px 20px;
-          background: rgba(255,255,255,0.8);
-          border-radius: 999px;
-          border: 1px solid rgba(148,163,184,0.2);
-          box-shadow: 0 14px 50px rgba(15,23,42,0.08);
-          font-weight: 600;
-          color: #0f172a;
-        }
-
-        .metric-card,
-        .chart-card,
-        .overview-card,
-        .insight-card,
-        .activity-card {
+        .glass-card {
           background: rgba(255,255,255,0.92);
-          border: none;
+          backdrop-filter: blur(16px);
           border-radius: 24px;
-          box-shadow: 0 18px 40px rgba(15,23,42,0.06);
-        }
-
-        .metric-card {
-          min-height: 150px;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-          padding: 24px;
-        }
-
-        .metric-icon {
-          width: 48px;
-          height: 48px;
-          border-radius: 16px;
-          display: grid;
-          place-items: center;
-          color: white;
-          box-shadow: 0 12px 24px rgba(15,23,42,0.12);
-        }
-
-        .metric-value {
-          font-size: 2.4rem;
-          font-weight: 800;
-          margin: 0;
-          color: #0f172a;
-        }
-
-        .metric-label {
-          color: #475569;
-          font-size: 0.95rem;
-          margin-top: 10px;
-        }
-
-        .chart-card {
-          overflow: hidden;
-        }
-
-        .chart-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 16px;
-          padding: 24px;
-          border-bottom: 1px solid rgba(148,163,184,0.15);
-        }
-
-        .chart-header h4 {
-          margin: 0;
-          font-size: 1.1rem;
-          font-weight: 700;
-          letter-spacing: -0.02em;
-        }
-
-        .chart-header small {
-          color: #64748b;
-        }
-
-        .line-chart {
-          padding: 28px 24px 24px;
-        }
-
-        .line-chart svg {
-          width: 100%;
-          height: 280px;
-        }
-
-        .chart-legend {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 12px;
-          padding: 0 24px 20px;
-        }
-
-        .chart-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 14px;
-          border-radius: 999px;
-          background: rgba(15,23,42,0.04);
-          color: #475569;
-          font-size: 0.88rem;
-          font-weight: 600;
-        }
-
-        .progress-bar-group {
-          display: grid;
-          gap: 16px;
-          padding: 24px;
-        }
-
-        .progress-item {
-          display: grid;
-          gap: 8px;
-        }
-
-        .progress-item strong {
-          display: flex;
-          justify-content: space-between;
-          color: #0f172a;
-          font-size: 0.95rem;
-        }
-
-        .bar-track {
-          width: 100%;
-          height: 10px;
-          background: #e2e8f0;
-          border-radius: 999px;
-          overflow: hidden;
-        }
-
-        .bar-fill {
-          height: 100%;
-          border-radius: 999px;
-        }
-
-        .insight-grid {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 20px;
-        }
-
-        .insight-card {
-          padding: 24px;
-        }
-
-        .insight-card h5 {
-          margin: 0 0 16px;
-          font-size: 1rem;
-          color: #0f172a;
-          font-weight: 700;
-        }
-
-        .insight-card p {
-          margin: 0;
-          color: #64748b;
-          line-height: 1.8;
-        }
-
-        .activity-card {
-          padding: 24px;
-        }
-
-        .activity-item {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 16px;
-          padding: 18px 0;
-          border-bottom: 1px solid rgba(148,163,184,0.12);
-        }
-
-        .activity-item:last-child {
-          border-bottom: none;
-        }
-
-        .activity-content {
-          min-width: 0;
-        }
-
-        .activity-title {
-          font-weight: 700;
-          margin-bottom: 6px;
-        }
-
-        .activity-time {
-          color: #64748b;
-          font-size: 0.9rem;
-        }
-
-        .activity-user {
-          color: #0f172a;
-          font-size: 0.95rem;
-          font-weight: 600;
-        }
-
-        .overview-badges {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 12px;
-          margin-top: 20px;
-        }
-
-        @media (max-width: 1199px) {
-          .dashboard-hero {
-            flex-direction: column;
-          }
-
-          .insight-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-
-        @media (max-width: 767px) {
-          .dashboard-shell {
-            padding: 20px 16px;
-          }
-        }
-
-        .dashboard-content {
+          border: 1px solid var(--border-glass);
+          box-shadow: 0 15px 40px var(--shadow-main);
           position: relative;
-          z-index: 1;
+          overflow: hidden;
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .glass-card:hover { transform: translateY(-4px); box-shadow: 0 20px 50px rgba(0,0,0,0.12); }
+
+        .overview-card { padding: 32px; }
+        .overview-card::before { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 6px; background: var(--highlight-grad); }
+
+        .stat-card {
+          background: linear-gradient(145deg, #0f172a, #1e293b);
+          border-radius: 20px; padding: 24px 20px; textAlign: left; position: relative; overflow: hidden;
+          box-shadow: 0 15px 35px rgba(15,23,42,0.25); color: white; border: 1px solid rgba(255,255,255,0.08);
+          transition: all 0.4s ease;
+        }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--highlight-grad); transform: scaleX(0); transform-origin: left; transition: transform 0.4s ease; }
+        .stat-card:hover { transform: translateY(-6px); box-shadow: 0 25px 45px rgba(15,23,42,0.4); }
+        .stat-card:hover::before { transform: scaleX(1); }
+
+        .stat-icon-wrapper { width: 48px; height: 48px; border-radius: 14px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s ease; }
+        .stat-card:hover .stat-icon-wrapper { background: rgba(251,191,36,0.2); transform: scale(1.1) rotate(5deg); border-color: rgba(251,191,36,0.3); }
+        
+        .stat-number { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 700; color: #ffffff; margin-bottom: 4px; line-height: 1; }
+        .stat-label { font-size: 0.9rem; color: #94a3b8; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+        .stat-increase { font-size: 0.8rem; color: #10b981; font-weight: 600; margin-top: 8px; display: inline-flex; align-items: center; gap: 4px; background: rgba(16,185,129,0.1); padding: 4px 8px; border-radius: 6px; }
+
+        .card-header-styled { padding: 24px 24px 16px; border-bottom: 1px solid var(--border-glass); display: flex; justify-content: space-between; align-items: center; }
+        .card-header-styled h4 { margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--text-primary); }
+        .card-header-styled small { color: var(--text-secondary); font-weight: 500; font-size: 0.85rem;}
+
+        /* Custom Bar Chart CSS */
+        .bar-chart-container { display: flex; align-items: flex-end; justify-content: space-between; height: 260px; padding: 30px; gap: 12px; }
+        .bar-wrapper { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 12px; position: relative; height: 100%; justify-content: flex-end; }
+        .bar-track { width: 100%; max-width: 40px; height: 100%; background: var(--bg-input); border-radius: 12px; position: relative; overflow: hidden; }
+        .bar-fill { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--highlight-grad); border-radius: 12px; transition: filter 0.3s; cursor: pointer;}
+        .bar-fill:hover { filter: brightness(1.15); }
+        .bar-label { font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; }
+        .bar-tooltip { position: absolute; top: -30px; backgroundColor: #0f172a; color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; opacity: 0; transform: translateY(10px); transition: 0.2s ease; pointer-events: none; }
+        .bar-wrapper:hover .bar-tooltip { opacity: 1; transform: translateY(0); }
+
+        /* Distribution Bars */
+        .dist-item { margin-bottom: 20px; }
+        .dist-item-header { display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+        .dist-track { height: 10px; background: var(--bg-input); border-radius: 999px; overflow: hidden; }
+        .dist-fill { height: 100%; border-radius: 999px; }
+
+        /* Activity List */
+        .activity-nav { display: flex; gap: 10px; margin-bottom: 20px; padding: 0 24px;}
+        .activity-tab { padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); background: transparent; border: 1px solid var(--border-glass); cursor: pointer; transition: 0.3s; }
+        .activity-tab.active { background: #0f172a; color: white; border-color: #0f172a; }
+        .activity-tab:hover:not(.active) { background: var(--bg-input); }
+
+        .activity-list { padding: 0 24px 24px; max-height: 380px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--highlight) transparent; }
+        .activity-item { display: flex; align-items: flex-start; gap: 16px; padding: 18px 0; border-bottom: 1px dashed var(--border-glass); transition: 0.2s ease; }
+        .activity-item:hover { transform: translateX(4px); background: rgba(0,0,0,0.01); border-radius: 12px; padding: 18px 12px; margin: 0 -12px; border-bottom-color: transparent;}
+        .activity-item:last-child { border-bottom: none; }
+        
+        .activity-icon-wrapper { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; font-size: 1.1rem; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.05);}
+        .icon-success { background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #059669; }
+        .icon-primary { background: linear-gradient(135deg, #e0e7ff, #c7d2fe); color: #4338ca; }
+        .icon-warning { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #d97706; }
+        .icon-info { background: linear-gradient(135deg, #e0f2fe, #bae6fd); color: #0284c7; }
+
+        .activity-title { font-weight: 600; color: var(--text-primary); margin-bottom: 4px; font-size: 0.95rem; line-height: 1.4; }
+        .activity-time { color: var(--text-secondary); font-size: 0.8rem; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+
+        /* Tasks List */
+        .task-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; margin-bottom: 12px; border-radius: 14px; border: 1px solid var(--border-glass); background: #ffffff; transition: 0.2s ease; cursor: pointer; }
+        .task-item:hover { border-color: var(--highlight); box-shadow: 0 4px 15px rgba(217,119,6,0.1); transform: translateY(-2px); }
+        
+        @media (max-width: 991px) {
+          .dashboard-shell { margin-left: 0; padding: 20px; }
         }
       `}</style>
-      <div className="dashboard-content">
-        {renderContent()}
-      </div>
-    </div>
-  );
-};
+      
+      {/* Background Ambience */}
+      <div className="ambient-shape shape-1"></div>
+      <div className="ambient-shape shape-2"></div>
 
-const generateSvgPath = (data, width = 760, height = 280) => {
-  const padding = 30;
-  const max = Math.max(...data) + 20;
-  const min = Math.min(...data) - 10;
-  return data
-    .map((value, index) => {
-      const x = padding + (index / (data.length - 1)) * (width - padding * 2);
-      const normalized = (value - min) / (max - min);
-      const y = height - padding - normalized * (height - padding * 2);
-      return `${x},${y}`;
-    })
-    .join(" ");
-};
-
-const DashboardOverview = () => {
-  const linePoints = generateSvgPath(monthlyTrend);
-  const areaPoints = `${linePoints} ${760 - 30},${280 - 30} 30,${280 - 30}`;
-
-  return (
-    <Container fluid>
-      <div className="dashboard-hero">
-        <div>
-          <h1 className="dashboard-heading">Admin Dashboard</h1>
-          <p className="dashboard-subtitle">
-            Monitor all law firm workflows from one place. Track vendor activity, agreement progress, deed workflow, record health, and payment performance with clear charts and instant insights.
-          </p>
-          <div className="hero-pill">
-            <FontAwesomeIcon icon={faGauge} />
-            Live operational pulse — updated hourly
+      <motion.div variants={containerVariants} initial="hidden" animate="visible" style={{position: 'relative', zIndex: 1}}>
+        <div className="page-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+          <div>
+            <h2 className="page-title">Workspace Dashboard</h2>
+            <p style={{color:'var(--text-secondary)', fontSize: '1.05rem'}} className="mb-0">Unified law operations, billing analytics, and performance tracking.</p>
+          </div>
+          <div className="d-flex gap-3">
+            <Button variant="light" style={{borderRadius: '12px', padding: '12px 20px', fontWeight: 600, border: '1px solid var(--border-glass)', background: 'white', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 10px rgba(0,0,0,0.05)'}}>
+              <FontAwesomeIcon icon={faBell} style={{color: '#d97706'}} /> Notifications <Badge bg="danger" style={{borderRadius: '50%'}}>3</Badge>
+            </Button>
+            <Button style={{background: 'var(--highlight-grad)', borderRadius: '12px', padding: '12px 24px', fontWeight: 600, border: 'none', boxShadow: '0 8px 20px rgba(217,119,6,0.2)'}}>
+              <FontAwesomeIcon icon={faMoneyCheckAlt} className="me-2" /> Generate Invoices
+            </Button>
           </div>
         </div>
-        <Card className="overview-card" style={{ minWidth: 300, padding: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16 }}>
-            <div>
-              <p style={{ margin: 0, color: '#64748b', fontWeight: 600 }}>Monthly revenue</p>
-              <h3 style={{ margin: '12px 0 0', fontSize: '2.2rem', color: '#0f172a' }}>₹ 2.4M</h3>
-            </div>
-            <div style={{ display: 'grid', placeItems: 'center', width: 56, height: 56, borderRadius: 18, background: '#eff6ff' }}>
-              <FontAwesomeIcon icon={faWallet} style={{ color: '#0ea5e9', fontSize: '1.4rem' }} />
-            </div>
-          </div>
-          <div className="overview-badges">
-            <Badge bg="success" text="light">+11.6% vs last month</Badge>
-            <Badge bg="warning" text="dark">32 pending actions</Badge>
-          </div>
-        </Card>
-      </div>
 
-      <Row className="g-4 mb-4">
-        {dashboardSummary.map((metric) => (
-          <Col xl={4} lg={6} key={metric.title}>
-            <motion.div whileHover={{ y: -6 }} transition={{ duration: 0.25 }}>
-              <Card className="metric-card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 18 }}>
-                  <div>
-                    <p style={{ margin: 0, color: '#64748b', fontSize: '0.95rem', fontWeight: 600 }}>{metric.subtitle}</p>
-                    <h2 className="metric-value">{metric.value}</h2>
+        {/* Global Stats Array */}
+        <Row className="g-4 mb-5 mt-2">
+          {dashboardSummary.map((metric) => (
+            <Col xl={3} lg={6} md={6} key={metric.title}>
+              <motion.div variants={itemVariants}>
+                <div className="stat-card">
+                  <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
+                    <div>
+                      <div className="stat-number">{metric.value}</div>
+                      <div className="stat-label">{metric.title}</div>
+                    </div>
+                    <div className="stat-icon-wrapper">
+                      <FontAwesomeIcon icon={metric.icon} style={{color: metric.accent, fontSize: '1.2rem'}} />
+                    </div>
                   </div>
-                  <div className="metric-icon" style={{ background: metric.accent }}>
-                    <FontAwesomeIcon icon={metric.icon} />
-                  </div>
+                  <div className="stat-increase">{metric.increase}</div>
                 </div>
-                <p className="metric-label">{metric.title} across the firm</p>
-              </Card>
+              </motion.div>
+            </Col>
+          ))}
+        </Row>
+
+        {/* Advanced Charts Section */}
+        <Row className="g-4 mb-5">
+          <Col xl={8} lg={12}>
+            <motion.div variants={itemVariants} className="h-100">
+              <div className="glass-card h-100 d-flex flex-column">
+                <div className="card-header-styled">
+                  <div>
+                    <h4>Revenue Intake Trend</h4>
+                    <small>Monthly payment realizations across all module types.</small>
+                  </div>
+                  <Badge bg="light" text="dark" style={{fontWeight: 700, padding: "8px 12px", border: "1px solid var(--border-glass)", borderRadius: "10px"}}>Last 6 Months</Badge>
+                </div>
+                {/* Custom Framer Motion Bar Chart */}
+                <div className="bar-chart-container">
+                  {revenueData.map((data, index) => (
+                    <div className="bar-wrapper" key={index}>
+                      <div className="bar-tooltip">{data.label}</div>
+                      <div className="bar-track">
+                        <motion.div 
+                          className="bar-fill"
+                          variants={barVariants}
+                          custom={`${(data.rev / 30) * 100}%`}
+                        />
+                      </div>
+                      <div className="bar-label">{data.month}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </motion.div>
           </Col>
-        ))}
-      </Row>
 
-      <Row className="g-4 mb-4">
-        <Col xl={8}>
-          <Card className="chart-card">
-            <div className="chart-header">
-              <div>
-                <h4>Monthly record momentum</h4>
-                <small>Shows the trend of new records and case activity this year.</small>
-              </div>
-              <div className="chart-pill">
-                <FontAwesomeIcon icon={faChartLine} /> Monthly gain
-              </div>
-            </div>
-            <div className="line-chart">
-              <svg viewBox="0 0 760 280" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#0ea5e9" />
-                    <stop offset="100%" stopColor="#10b981" />
-                  </linearGradient>
-                  <linearGradient id="areaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="rgba(14,165,233,0.25)" />
-                    <stop offset="100%" stopColor="rgba(16,185,129,0)" />
-                  </linearGradient>
-                </defs>
-                <rect x="0" y="0" width="760" height="280" fill="transparent" />
-                <polygon points={areaPoints} fill="url(#areaGrad)" />
-                <polyline
-                  points={linePoints}
-                  fill="none"
-                  stroke="url(#lineGrad)"
-                  strokeWidth="5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                {monthlyTrend.map((value, index) => {
-                  const width = 760;
-                  const height = 280;
-                  const padding = 30;
-                  const max = Math.max(...monthlyTrend) + 20;
-                  const min = Math.min(...monthlyTrend) - 10;
-                  const x = padding + (index / (monthlyTrend.length - 1)) * (width - padding * 2);
-                  const normalized = (value - min) / (max - min);
-                  const y = height - padding - normalized * (height - padding * 2);
-                  return (
-                    <g key={index}>
-                      <circle cx={x} cy={y} r="6" fill="#fff" stroke="#0ea5e9" strokeWidth="3" />
-                    </g>
-                  );
-                })}
-              </svg>
-            </div>
-            <div className="chart-legend">
-              <span className="chart-pill"><FontAwesomeIcon icon={faCalendarAlt} /> 12 months</span>
-              <span className="chart-pill"><FontAwesomeIcon icon={faClipboardList} /> Case load growth</span>
-            </div>
-          </Card>
-        </Col>
-
-        <Col xl={4}>
-          <Card className="chart-card">
-            <div className="chart-header">
-              <div>
-                <h4>Record distribution</h4>
-                <small>How your workload is split across firm modules.</small>
-              </div>
-              <div className="chart-pill">
-                <FontAwesomeIcon icon={faChartPie} /> Module mix
-              </div>
-            </div>
-            <div className="progress-bar-group">
-              {moduleDistribution.map((item) => (
-                <div className="progress-item" key={item.label}>
-                  <strong>
-                    <span>{item.label}</span>
-                    <span>{item.value}%</span>
-                  </strong>
-                  <div className="bar-track">
-                    <div className="bar-fill" style={{ width: `${item.value}%`, background: item.color }} />
+          <Col xl={4} lg={12}>
+            <motion.div variants={itemVariants} className="h-100">
+              <div className="glass-card h-100 d-flex flex-column">
+                <div className="card-header-styled">
+                  <div>
+                    <h4>Record Distribution</h4>
+                    <small>Volume by document type</small>
                   </div>
+                  <FontAwesomeIcon icon={faChartPie} style={{color: '#d97706', fontSize: '1.2rem'}} />
                 </div>
-              ))}
-            </div>
-          </Card>
-        </Col>
-      </Row>
+                
+                <div style={{padding: '30px 24px', flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center'}}>
+                  {distributionData.map((item, index) => (
+                    <div className="dist-item" key={index}>
+                      <div className="dist-item-header">
+                        <span style={{display: 'flex', alignItems: 'center', gap: 8}}>
+                          <span style={{width: 10, height: 10, borderRadius: '50%', background: item.color}}></span>
+                          {item.label}
+                        </span>
+                        <span>{item.value}%</span>
+                      </div>
+                      <div className="dist-track">
+                        <motion.div 
+                          className="dist-fill" 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${item.value}%` }}
+                          transition={{ duration: 1, delay: 0.3 + (index * 0.1), ease: "easeOut" }}
+                          style={{ background: item.color }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </Col>
+        </Row>
 
-      <Row className="g-4">
-        <Col xl={5}>
-          <Card className="insight-card">
-            <h5>Operational insights</h5>
-            <p>
-              The dashboard blends classic law firm reporting with modern visual cues so admin can act quickly. Filter by module, compare monthly trends, and keep important workflows visible at a glance.
-            </p>
-            <div className="overview-badges">
-              <Badge bg="primary">Trusted metrics</Badge>
-              <Badge bg="info" text="dark">Live update</Badge>
-              <Badge bg="secondary">Admin-ready</Badge>
-            </div>
-          </Card>
-        </Col>
-        <Col xl={7}>
-          <Card className="activity-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-              <div>
-                <h4 style={{ margin: 0 }}>Recent activity feed</h4>
-                <small style={{ color: '#64748b' }}>Latest firm actions and status updates.</small>
-              </div>
-              <Button variant="outline-primary" size="sm">View all</Button>
-            </div>
-            {recentActions.map((item) => (
-              <div className="activity-item" key={item.time + item.action}>
-                <div className="activity-content">
-                  <div className="activity-title">{item.action}</div>
-                  <div className="activity-time">{item.time}</div>
+        {/* Action Log and Tasks */}
+        <Row className="g-4 mb-5">
+          <Col xl={7} lg={12}>
+            <motion.div variants={itemVariants} className="h-100">
+              <div className="glass-card h-100">
+                 <div className="card-header-styled" style={{borderBottom: 'none'}}>
+                  <div>
+                    <h4 style={{ margin: 0, fontWeight: 700, color: '#0f172a' }}>Live Action Log</h4>
+                    <small style={{ color: '#64748b', fontWeight: 500 }}>Real-time updates from your team</small>
+                  </div>
+                  <FontAwesomeIcon icon={faClock} style={{color: '#94a3b8'}} />
                 </div>
-                <div className="activity-user">{item.user}</div>
-              </div>
-            ))}
-          </Card>
-        </Col>
-      </Row>
+                
+                <div className="activity-nav">
+                  <button className={`activity-tab ${activityTab === 'all' ? 'active' : ''}`} onClick={() => setActivityTab('all')}>All Updates</button>
+                  <button className={`activity-tab ${activityTab === 'payments' ? 'active' : ''}`} onClick={() => setActivityTab('payments')}>Payments</button>
+                  <button className={`activity-tab ${activityTab === 'documents' ? 'active' : ''}`} onClick={() => setActivityTab('documents')}>Documents</button>
+                </div>
 
-      <div className="insight-grid" style={{ marginTop: 32 }}>
-        {pageInsights.map((insight) => (
-          <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }} key={insight.title}>
-            <Card className="insight-card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                <div>
-                  <h5>{insight.title}</h5>
-                  <p style={{ margin: 0, color: '#64748b' }}>Key admin performance indicator.</p>
-                </div>
-                <div style={{ display: 'grid', placeItems: 'center', width: 44, height: 44, borderRadius: 16, background: '#eef2ff', color: '#4338ca' }}>
-                  <FontAwesomeIcon icon={insight.icon} />
+                <div className="activity-list">
+                  <AnimatePresence mode="popLayout">
+                    {recentActionsData[activityTab].map((item, index) => {
+                      let icon, iconClass;
+                      if (item.type === 'success') { icon = faCheckCircle; iconClass = 'icon-success'; }
+                      else if (item.type === 'primary') { icon = faUserFriends; iconClass = 'icon-primary'; }
+                      else if (item.type === 'warning') { icon = faExclamationTriangle; iconClass = 'icon-warning'; }
+                      else { icon = faFileAlt; iconClass = 'icon-info'; }
+
+                      return (
+                        <motion.div 
+                          className="activity-item" 
+                          key={item.action + index}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <div className={`activity-icon-wrapper ${iconClass}`}>
+                            <FontAwesomeIcon icon={icon} />
+                          </div>
+                          <div className="activity-content">
+                            <div className="activity-title">{item.action}</div>
+                            <div className="activity-time">
+                              <span style={{color: '#0f172a', fontWeight: 700}}>{item.user}</span> • {item.time}
+                            </div>
+                          </div>
+                        </motion.div>
+                      )
+                    })}
+                  </AnimatePresence>
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                <h2 style={{ margin: 0, color: '#0f172a' }}>{insight.value}</h2>
-                <Badge bg="light" text="dark" style={{ fontWeight: 700, borderRadius: 9999 }}>{insight.detail}</Badge>
+            </motion.div>
+          </Col>
+
+          <Col xl={5} lg={12}>
+            <motion.div variants={itemVariants} className="h-100">
+              <div className="glass-card h-100" style={{background: 'linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)'}}>
+                 <div className="card-header-styled">
+                  <div>
+                    <h4 style={{ margin: 0, fontWeight: 700, color: '#0f172a' }}>Pending Actions</h4>
+                    <small style={{ color: '#64748b', fontWeight: 500 }}>Tasks requiring administrator approval</small>
+                  </div>
+                  <div style={{background: '#fee2e2', color: '#dc2626', padding: '8px', borderRadius: '10px'}}><FontAwesomeIcon icon={faTasks} /></div>
+                </div>
+                
+                <div style={{padding: '24px'}}>
+                  {pendingTasks.map((task, idx) => (
+                    <motion.div 
+                      key={task.id} 
+                      className="task-item"
+                      whileHover={{ scale: 1.02 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div style={{display: 'flex', gap: '16px', alignItems: 'center'}}>
+                        <div style={{background: 'rgba(217,119,6,0.1)', color: '#d97706', width: 44, height: 44, borderRadius: '12px', display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: '0.85rem'}}>
+                          {task.doc.split('-')[0]}
+                        </div>
+                        <div>
+                          <div style={{fontWeight: 700, color: '#0f172a', fontSize: '0.95rem'}}>{task.doc}</div>
+                          <div style={{color: '#475569', fontSize: '0.85rem'}}>{task.desc}</div>
+                        </div>
+                      </div>
+                      <div>
+                        {getStatusBadge(task.priority)}
+                      </div>
+                    </motion.div>
+                  ))}
+                  <Button variant="outline-primary" style={{width: '100%', marginTop: '10px', borderRadius: '12px', fontWeight: 600, color: '#0f172a', borderColor: 'var(--border-glass)'}}>
+                    View All Tasks →
+                  </Button>
+                </div>
+
               </div>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-    </Container>
+            </motion.div>
+          </Col>
+        </Row>
+      </motion.div>
+    </div>
   );
 };
-
-const summaryPlaceholder = (title, description, buttonLabel) => (
-  <Container fluid>
-    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 18, flexWrap: 'wrap' }}>
-      <div>
-        <h2 style={{ fontSize: '2rem', marginBottom: 8 }}>{title}</h2>
-        <p style={{ maxWidth: 760, color: '#475569', lineHeight: 1.8 }}>{description}</p>
-      </div>
-      <Button variant="outline-primary">{buttonLabel}</Button>
-    </div>
-    <Row className="g-4 mt-4">
-      <Col xl={4} md={6}>
-        <Card className="metric-card">
-          <p style={{ margin: 0, color: '#64748b', fontWeight: 700 }}>Open workflows</p>
-          <h3 style={{ marginTop: 16, fontSize: '2.3rem' }}>28</h3>
-          <p style={{ margin: '14px 0 0', color: '#475569' }}>Tasks that need administrative action.</p>
-        </Card>
-      </Col>
-      <Col xl={4} md={6}>
-        <Card className="metric-card">
-          <p style={{ margin: 0, color: '#64748b', fontWeight: 700 }}>Average turnaround</p>
-          <h3 style={{ marginTop: 16, fontSize: '2.3rem' }}>4.2 days</h3>
-          <p style={{ margin: '14px 0 0', color: '#475569' }}>Speed of completion across records.</p>
-        </Card>
-      </Col>
-      <Col xl={4} md={12}>
-        <Card className="metric-card">
-          <p style={{ margin: 0, color: '#64748b', fontWeight: 700 }}>Team utilization</p>
-          <h3 style={{ marginTop: 16, fontSize: '2.3rem' }}>82%</h3>
-          <p style={{ margin: '14px 0 0', color: '#475569' }}>Capacity used by the legal operations team.</p>
-        </Card>
-      </Col>
-    </Row>
-  </Container>
-);
-
-const LandEC = () => summaryPlaceholder(
-  "Encumbrance Certificate Control",
-  "See how EC processing is progressing and identify priority documents that need verification.",
-  "Manage EC"
-);
-
-const NagalAdangal = () => summaryPlaceholder(
-  "Nagal / Adangal Tracker",
-  "Track Adangal and Nagal paperwork with clear status indicators and fast upload controls.",
-  "Upload Record"
-);
-
-const PattaRecords = () => summaryPlaceholder(
-  "Patta / Agreement Hub",
-  "Centralize patta and agreement records for audit-ready reporting and quick admin review.",
-  "New Patta Entry"
-);
-
-const Clients = () => summaryPlaceholder(
-  "Client Relationship Insights",
-  "Monitor new client intake, active matters, and billing-ready accounts from one dashboard.",
-  "Add Client"
-);
-
-const CaseHistory = () => summaryPlaceholder(
-  "Case History Overview",
-  "Review recent case milestones and keep a clean timeline of closed and ongoing matters.",
-  "View History"
-);
 
 export default Dashboard;
